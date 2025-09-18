@@ -6,6 +6,7 @@ import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 import com.hexin.gift.modules.gift.domain.service.CandidatePolicy;
 import com.hexin.gift.modules.gift.domain.service.EligibilityService;
+import com.hexin.gift.modules.gift.domain.service.GiftGrantService;
 import com.hexin.gift.modules.gift.domain.service.GoodsAssembler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ class ProductGiftManagerImplTest {
 
     @Mock
     private EligibilityService eligibilityService;
+
+    @Mock
+    private GiftGrantService giftGrantService;
 
     @InjectMocks
     private ProductGiftManagerImpl manager;
@@ -72,5 +76,19 @@ class ProductGiftManagerImplTest {
 
         assertEquals(expected, result);
         verify(eligibilityService).checkEligibility(selected, userIds);
+    }
+
+    @Test
+    void grantBatch_shouldDelegateToService() {
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GiftCandidateVO candidate = new GiftCandidateVO(1001, "nick", null, "product", "20240101", 6);
+        List<GiftCandidateVO> candidates = Collections.singletonList(candidate);
+        List<Boolean> expected = Collections.singletonList(Boolean.TRUE);
+        when(giftGrantService.grantBatch(selected, candidates, 7, "source")).thenReturn(expected);
+
+        List<Boolean> result = manager.grantBatch(selected, candidates, 7, "source");
+
+        assertEquals(expected, result);
+        verify(giftGrantService).grantBatch(selected, candidates, 7, "source");
     }
 }

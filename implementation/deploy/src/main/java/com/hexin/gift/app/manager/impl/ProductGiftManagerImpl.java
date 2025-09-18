@@ -7,6 +7,7 @@ import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 import com.hexin.gift.modules.gift.domain.service.GoodsAssembler;
 import com.hexin.gift.modules.gift.domain.service.CandidatePolicy;
 import com.hexin.gift.modules.gift.domain.service.EligibilityService;
+import com.hexin.gift.modules.gift.domain.service.GiftGrantService;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -18,13 +19,16 @@ public class ProductGiftManagerImpl implements ProductGiftManager {
     private final GoodsAssembler goodsAssembler;
     private final CandidatePolicy candidatePolicy;
     private final EligibilityService eligibilityService;
+    private final GiftGrantService giftGrantService;
 
     public ProductGiftManagerImpl(GoodsAssembler goodsAssembler,
                                   CandidatePolicy candidatePolicy,
-                                  EligibilityService eligibilityService) {
+                                  EligibilityService eligibilityService,
+                                  GiftGrantService giftGrantService) {
         this.goodsAssembler = goodsAssembler;
         this.candidatePolicy = candidatePolicy;
         this.eligibilityService = eligibilityService;
+        this.giftGrantService = giftGrantService;
     }
 
     @Override
@@ -47,7 +51,6 @@ public class ProductGiftManagerImpl implements ProductGiftManager {
 
     @Override
     public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<GiftCandidateVO> candidates, Integer attr, String source) {
-        // TODO delegate to GiftGrantService when implemented
-        return Collections.emptyList();
+        return giftGrantService.grantBatch(selectedGood, candidates, attr, source);
     }
 }

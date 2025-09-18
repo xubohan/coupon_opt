@@ -4,9 +4,11 @@
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/impl/GoodsAssemblerImpl.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/vo/GiftCandidateVO.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/app/manager/ProductGiftManager.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/impl/GiftGrantServiceImpl.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/dto/PackageBaseDTO.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/ListGoodsQuery.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/EligibilityService.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/GiftGrantService.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/vo/GoodsBaseVO.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/CandidatePolicy.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/GrantBatchQuery.java
@@ -21,5 +23,6 @@
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/impl/CandidatePolicyImpl.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/app/manager/impl/ProductGiftManagerImpl.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/GiftApplication.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/ActivityGiftRightsApi.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/GiftController.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/PortfolioBaseApi.java

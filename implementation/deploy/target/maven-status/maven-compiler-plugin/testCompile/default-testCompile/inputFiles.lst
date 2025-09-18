@@ -2,4 +2,5 @@
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/test/java/com/hexin/gift/modules/gift/domain/service/CandidatePolicyTest.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/test/java/com/hexin/gift/app/manager/ProductGiftManagerImplTest.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/test/java/com/hexin/gift/interfaces/rest/GiftControllerTest.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/test/java/com/hexin/gift/modules/gift/domain/service/GiftGrantServiceImplTest.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/test/java/com/hexin/gift/modules/gift/domain/service/EligibilityServiceImplTest.java
