@@ -5,6 +5,7 @@ import com.hexin.gift.interfaces.rest.converter.GiftControllerConverter;
 import com.hexin.gift.interfaces.rest.query.CheckEligibilityQuery;
 import com.hexin.gift.interfaces.rest.query.GrantBatchQuery;
 import com.hexin.gift.interfaces.rest.query.ListCandidatesQuery;
+import com.hexin.gift.interfaces.rest.query.ListGoodsQuery;
 import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -38,8 +37,8 @@ public class GiftController {
     }
 
     @GetMapping("/goods")
-    public ResponseEntity<List<GoodsBaseVO>> listGoods(@RequestParam("advisorId") @NotNull Integer advisorId) {
-        List<GoodsBaseVO> goods = productGiftManager.listGoods(advisorId);
+    public ResponseEntity<List<GoodsBaseVO>> listGoods(@Valid ListGoodsQuery query) {
+        List<GoodsBaseVO> goods = productGiftManager.listGoods(query);
         return ResponseEntity.ok(converter.toGoodsResponse(goods));
     }
 

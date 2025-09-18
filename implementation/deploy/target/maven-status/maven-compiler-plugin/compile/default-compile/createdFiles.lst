@@ -1,7 +1,8 @@
 com/hexin/gift/interfaces/rest/query/ListGoodsQuery.class
+com/hexin/gift/interfaces/rest/vo/GoodsBaseVO.class
+com/hexin/gift/app/manager/ProductGiftManager.class
+com/hexin/gift/modules/gift/domain/service/impl/CandidatePolicyImpl$1.class
 com/hexin/gift/interfaces/rest/GiftController.class
 com/hexin/gift/interfaces/rest/converter/GiftControllerConverter.class
 com/hexin/gift/interfaces/rest/vo/GiftCandidateVO.class
-com/hexin/gift/interfaces/rest/vo/GoodsBaseVO.class
 com/hexin/gift/interfaces/rest/query/ListCandidatesQuery.class
-com/hexin/gift/app/manager/ProductGiftManager.class

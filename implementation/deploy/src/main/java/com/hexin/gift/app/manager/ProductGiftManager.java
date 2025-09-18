@@ -1,5 +1,6 @@
 package com.hexin.gift.app.manager;
 
+import com.hexin.gift.interfaces.rest.query.ListGoodsQuery;
 import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface ProductGiftManager {
 
-    List<GoodsBaseVO> listGoods(Integer advisorId);
+    List<GoodsBaseVO> listGoods(ListGoodsQuery query);
 
     List<GiftCandidateVO> listCandidates(GoodsBaseVO selectedGood, List<GoodsBaseVO> allGoods);
 

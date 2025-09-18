@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="com.hexin.gift.interfaces.rest.GiftControllerTest" time="2.992" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="com.hexin.gift.modules.gift.domain.service.GoodsAssemblerTest" time="0.03" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="gopherProxySet" value="false"/>
     <property name="awt.toolkit" value="sun.lwawt.macosx.LWCToolkit"/>
@@ -69,8 +69,6 @@
     <property name="socksNonProxyHosts" value="127.0.0.1|192.168.0.0/16|*.192.168.0.0/16|10.0.0.0/8|*.10.0.0.0/8|172.16.0.0/12|*.172.16.0.0/12|172.29.0.0/16|*.172.29.0.0/16|localhost|*.localhost|local|*.local|crashlytics.com|*.crashlytics.com|&lt;local&gt;|*.&lt;local&gt;"/>
     <property name="http.proxyPort" value="7897"/>
   </properties>
-  <testcase name="checkEligibility_shouldReturnBooleanList" classname="com.hexin.gift.interfaces.rest.GiftControllerTest" time="0.361"/>
-  <testcase name="listGoods_shouldReturnGoodsList" classname="com.hexin.gift.interfaces.rest.GiftControllerTest" time="0.015"/>
-  <testcase name="listCandidates_shouldReturnCandidateList" classname="com.hexin.gift.interfaces.rest.GiftControllerTest" time="0.069"/>
-  <testcase name="grantBatch_shouldReturnBooleanList" classname="com.hexin.gift.interfaces.rest.GiftControllerTest" time="0.016"/>
+  <testcase name="listGoods_shouldHandleNullResponses" classname="com.hexin.gift.modules.gift.domain.service.GoodsAssemblerTest" time="0.026"/>
+  <testcase name="listGoods_shouldMergePortfolioAndPackage" classname="com.hexin.gift.modules.gift.domain.service.GoodsAssemblerTest" time="0.002"/>
 </testsuite>

@@ -6,6 +6,7 @@ import com.hexin.gift.interfaces.rest.converter.GiftControllerConverter;
 import com.hexin.gift.interfaces.rest.query.CheckEligibilityQuery;
 import com.hexin.gift.interfaces.rest.query.GrantBatchQuery;
 import com.hexin.gift.interfaces.rest.query.ListCandidatesQuery;
+import com.hexin.gift.interfaces.rest.query.ListGoodsQuery;
 import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 import org.junit.jupiter.api.Test;
@@ -47,14 +48,17 @@ class GiftControllerTest {
     @Test
     void listGoods_shouldReturnGoodsList() throws Exception {
         List<GoodsBaseVO> goods = Collections.singletonList(new GoodsBaseVO(1L, "portfolio", "PORTFOLIO"));
-        when(productGiftManager.listGoods(anyInt())).thenReturn(goods);
+        ListGoodsQuery expectedQuery = new ListGoodsQuery(101);
+        when(productGiftManager.listGoods(any(ListGoodsQuery.class))).thenReturn(goods);
 
         mockMvc.perform(get("/api/gifts/goods").param("advisorId", "101"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].goodsId").value(1L))
                 .andExpect(jsonPath("$[0].type").value("PORTFOLIO"));
 
-        verify(productGiftManager).listGoods(101);
+        ArgumentCaptor<ListGoodsQuery> queryCaptor = ArgumentCaptor.forClass(ListGoodsQuery.class);
+        verify(productGiftManager).listGoods(queryCaptor.capture());
+        assertEquals(expectedQuery.getAdvisorId(), queryCaptor.getValue().getAdvisorId());
     }
 
     @Test
