@@ -1,0 +1,7 @@
+com/hexin/gift/interfaces/rest/query/ListGoodsQuery.class
+com/hexin/gift/interfaces/rest/GiftController.class
+com/hexin/gift/interfaces/rest/converter/GiftControllerConverter.class
+com/hexin/gift/interfaces/rest/vo/GiftCandidateVO.class
+com/hexin/gift/interfaces/rest/vo/GoodsBaseVO.class
+com/hexin/gift/interfaces/rest/query/ListCandidatesQuery.class
+com/hexin/gift/app/manager/ProductGiftManager.class

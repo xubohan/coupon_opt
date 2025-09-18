@@ -1,0 +1,127 @@
+package com.hexin.gift.interfaces.rest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hexin.gift.app.manager.ProductGiftManager;
+import com.hexin.gift.interfaces.rest.converter.GiftControllerConverter;
+import com.hexin.gift.interfaces.rest.query.CheckEligibilityQuery;
+import com.hexin.gift.interfaces.rest.query.GrantBatchQuery;
+import com.hexin.gift.interfaces.rest.query.ListCandidatesQuery;
+import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
+import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(GiftController.class)
+@Import(GiftControllerConverter.class)
+class GiftControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private ProductGiftManager productGiftManager;
+
+    @Test
+    void listGoods_shouldReturnGoodsList() throws Exception {
+        List<GoodsBaseVO> goods = Collections.singletonList(new GoodsBaseVO(1L, "portfolio", "PORTFOLIO"));
+        when(productGiftManager.listGoods(anyInt())).thenReturn(goods);
+
+        mockMvc.perform(get("/api/gifts/goods").param("advisorId", "101"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].goodsId").value(1L))
+                .andExpect(jsonPath("$[0].type").value("PORTFOLIO"));
+
+        verify(productGiftManager).listGoods(101);
+    }
+
+    @Test
+    void listCandidates_shouldReturnCandidateList() throws Exception {
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        ListCandidatesQuery query = new ListCandidatesQuery(selected, Collections.singletonList(selected));
+        GiftCandidateVO candidate = new GiftCandidateVO(9001, "nick", null, "product", "2024-01-01", 6);
+        when(productGiftManager.listCandidates(any(GoodsBaseVO.class), any())).thenReturn(Collections.singletonList(candidate));
+
+        mockMvc.perform(post("/api/gifts/candidates")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(query)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].userId").value(9001));
+
+        ArgumentCaptor<GoodsBaseVO> selectedCaptor = ArgumentCaptor.forClass(GoodsBaseVO.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<GoodsBaseVO>> goodsListCaptor = ArgumentCaptor.forClass(List.class);
+        verify(productGiftManager).listCandidates(selectedCaptor.capture(), goodsListCaptor.capture());
+        assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
+        assertEquals(1, goodsListCaptor.getValue().size());
+        assertEquals(selected.getGoodsId(), goodsListCaptor.getValue().get(0).getGoodsId());
+    }
+
+    @Test
+    void checkEligibility_shouldReturnBooleanList() throws Exception {
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        CheckEligibilityQuery command = new CheckEligibilityQuery(selected, Arrays.asList(1, 2));
+        when(productGiftManager.checkEligibility(any(GoodsBaseVO.class), any())).thenReturn(Arrays.asList(true, false));
+
+        mockMvc.perform(post("/api/gifts/check-eligibility")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(command)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[1]").value(false));
+
+        ArgumentCaptor<GoodsBaseVO> selectedCaptor = ArgumentCaptor.forClass(GoodsBaseVO.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Integer>> userIdsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(productGiftManager).checkEligibility(selectedCaptor.capture(), userIdsCaptor.capture());
+        assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
+        assertEquals(Arrays.asList(1, 2), userIdsCaptor.getValue());
+    }
+
+    @Test
+    void grantBatch_shouldReturnBooleanList() throws Exception {
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GiftCandidateVO candidate = new GiftCandidateVO(9001, "nick", null, "product", "2024-01-01", 6);
+        GrantBatchQuery command = new GrantBatchQuery(selected, Collections.singletonList(candidate), 7, "source");
+        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyInt(), any())).thenReturn(Collections.singletonList(true));
+
+        mockMvc.perform(post("/api/gifts/grant")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(command)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value(true));
+
+        ArgumentCaptor<GoodsBaseVO> selectedCaptor = ArgumentCaptor.forClass(GoodsBaseVO.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<GiftCandidateVO>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<Integer> attrCaptor = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<String> sourceCaptor = ArgumentCaptor.forClass(String.class);
+        verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture(), sourceCaptor.capture());
+        assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
+        assertEquals(1, candidatesCaptor.getValue().size());
+        assertEquals(candidate.getUserId(), candidatesCaptor.getValue().get(0).getUserId());
+        assertEquals(7, attrCaptor.getValue().intValue());
+        assertEquals("source", sourceCaptor.getValue());
+    }
+}

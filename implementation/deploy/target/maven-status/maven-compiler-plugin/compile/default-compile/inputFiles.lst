@@ -1,0 +1,10 @@
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/GiftApplication.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/converter/GiftControllerConverter.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/CheckEligibilityQuery.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/GrantBatchQuery.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/vo/GiftCandidateVO.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/GiftController.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/app/manager/ProductGiftManager.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/ListGoodsQuery.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/ListCandidatesQuery.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/vo/GoodsBaseVO.java
