@@ -1,0 +1,122 @@
+@startuml
+title 赠送流程（4个REST：listGoods → listCandidates → checkEligibility → grantBatch）
+
+actor FE as "前端"
+participant API as "GiftController"
+participant Svc as "ProductGiftManagerImpl"
+participant PBase as "PortfolioBaseApi"
+participant PackBase as "PackageBaseApi"
+participant PTrack as "PortfolioTrackApi"
+participant PackTrack as "PackageTrackApi"
+participant Paid as "UserPaidStatusApi"
+participant Gift as "ActivityGiftRightsApi"
+
+' =========================
+' (1) 列出顾问名下可选 goods
+' =========================
+FE -> API : GET /api/gifts/goods (advisorId: Integer)
+API -> Svc : listGoods(advisorId)
+group 查询Base
+  Svc -> PBase : getportfoliochargebaselist(advisorId)
+  PBase --> Svc : List PortfolioBaseEntity
+  Svc -> PackBase : getpackagebaselist(advisorId)
+  PackBase --> Svc : List PackageBaseEntity
+end
+Svc -> Svc : merge -> GoodsBaseVO List
+Svc --> API : GoodsBaseVO List
+API --> FE : GoodsBaseVO List
+note over FE
+从列表中选择 selectedGood（单个对象）
+end note
+
+' =========================
+' (2) 产出候选用户（基于所选商品）
+' =========================
+FE -> API : GET /api/gifts/candidates (selectedGood, allGoods)
+API -> Svc : listCandidates(selectedGood, allGoods)
+
+group 汇总所有已付费（不含选中项）
+  Svc -> PTrack : portfoliotracklist(allPortfolioIds from allGoods)
+  PTrack --> Svc : List PortfolioTrackUsersDTO
+  Svc -> PackTrack : packagetracklist(allPackageIds from allGoods)
+  PackTrack --> Svc : List PackageTrackUsersDTO
+end
+
+group 获取选中项已付费（用于差集）
+  alt selectedGood.type == "PORTFOLIO"
+    Svc -> PTrack : portfoliotracklist([selectedGood.goodsId])
+    PTrack --> Svc : List PortfolioTrackUsersDTO (selectedPaid)
+  else selectedGood.type == "PACKAGE"
+    Svc -> PackTrack : packagetracklist([selectedGood.goodsId])
+    PackTrack --> Svc : List PackageTrackUsersDTO (selectedPaid)
+  end
+end
+
+group 差集 + 最近一单
+  Svc -> Svc : (allPaidWithoutSelected) = (allPortfolioPaid + allPackagePaid) - selectedPaid(by userId)
+  Svc -> Svc : 按 userId 取 subscribeStart 最新；同值用 purchaseTime 兜底
+  Svc -> Svc : 组装 GiftCandidateVO List
+end
+
+Svc --> API : GiftCandidateVO List
+API --> FE : GiftCandidateVO List（前端自行分页/筛选）
+
+' =========================
+' (3) 校验可选性（严格按指令：逐个用户短路判断；不构建集合）
+' 规则：
+'  3.1 若 uid 非付费用户 → 立即 false
+'  3.2 若 uid 是“当前产品”的付费用户 → false
+'  3.3 否则（付费且非当前产品付费）→ true
+' =========================
+FE -> API : POST /api/gifts/check-eligibility (selectedGood, userIds)
+API -> Svc : checkEligibility(selectedGood, userIds)
+
+loop for each uid in userIds（保持入参顺序）
+  ' 第一步：是否为付费用户（全站/跨投顾都算）
+  Svc -> Paid : isPaid(uid)
+  Paid --> Svc : Boolean paid
+
+  alt paid == false
+    Svc -> Svc : appendResult(false)  ' 非付费用户 → 不可选
+  else
+    ' 第二步：是否为“当前产品”的付费用户（按type选接口）
+    alt selectedGood.type == "PORTFOLIO"
+      Svc -> PTrack : isUserPaidForPortfolio(uid, selectedGood.goodsId)
+      PTrack --> Svc : Boolean paidCurrent
+    else selectedGood.type == "PACKAGE"
+      Svc -> PackTrack : isUserPaidForPackage(uid, selectedGood.goodsId)
+      PackTrack --> Svc : Boolean paidCurrent
+    end
+
+    alt paidCurrent == true
+      Svc -> Svc : appendResult(false)  ' 是当前产品付费用户 → 不可选
+    else
+      Svc -> Svc : appendResult(true)   ' 付费且非当前产品付费 → 可选
+    end
+  end
+end
+
+Svc --> API : Boolean List（与 userIds 顺序一致）
+API --> FE : Boolean List（true=可选 / false=不可选）
+
+' =========================
+' (4) 批量赠送（包含 attr，如天数7/30）
+' =========================
+FE -> API : POST /api/gifts/grant (selectedGood, candidates, attr, source)
+API -> Svc : grantBatch(selectedGood, candidates, attr, source)
+
+loop for each c in candidates（按入参顺序）
+  Svc -> Gift : addactivitygiftrights(selectedGood.goodsId, attr, c.userid, source)
+  alt 正常
+    Gift --> Svc : void
+    Svc -> Svc : appendResult(true)
+  else 异常
+    Gift --> Svc : throw Exception
+    Svc -> Svc : appendResult(false)
+  end
+end
+
+Svc --> API : Boolean List（与 candidates 顺序一致）
+API --> FE : Boolean List（true 成功 / false 失败）
+
+@enduml

@@ -1,0 +1,96 @@
+@startuml
+skinparam shadowing false
+hide empty members
+
+' ===== Interfaces / REST 层：突出 Controller =====
+package interfaces_rest {
+  class GiftController <<Controller>> {
+    + listGoods(advisorId: Integer): List
+    + listCandidates(selectedGood: GoodsBaseVO, allGoods: List): List
+    + checkEligibility(selectedGood: GoodsBaseVO, userIds: List): List
+    + grantBatch(selectedGood: GoodsBaseVO, candidates: List, attr: Integer, source: String): List
+  }
+}
+
+' ===== Application 层：突出接口与实现 Impl =====
+package app_manager {
+  interface ProductGiftManager {
+    + listGoods(advisorId: Integer): List
+    + listCandidates(selectedGood: GoodsBaseVO, allGoods: List): List
+    + checkEligibility(selectedGood: GoodsBaseVO, userIds: List): List
+    + grantBatch(selectedGood: GoodsBaseVO, candidates: List, attr: Integer, source: String): List
+  }
+
+  class ProductGiftManagerImpl <<Impl>> {
+    - goodsAssembler: GoodsAssembler
+    - candidatePolicy: CandidatePolicy
+    - eligibilityService: EligibilityService
+    - grantService: GiftGrantService
+    - pBase: PortfolioBaseApi
+    - packBase: PackageBaseApi
+    - pTrack: PortfolioTrackApi
+    - packTrack: PackageTrackApi
+    - paidApi: UserPaidStatusApi
+    - giftRights: ActivityGiftRightsApi
+  }
+
+  ProductGiftManagerImpl ..|> ProductGiftManager
+}
+
+' ===== Domain VO（仅两类，按你定稿字段）=====
+package domain_vo {
+  class GoodsBaseVO {
+    + goodsId: Long
+    + goodsName: String
+    + type: String
+  }
+
+  class GiftCandidateVO {
+    + userid: Integer
+    + nickName: String
+    + avatarUrl: String
+    + productName: String
+    + purchaseDate: String
+    + durationmonths: Integer
+  }
+}
+
+' ===== Domain Service（点到即止，便于实现）=====
+package domain_service {
+  class GoodsAssembler
+  class CandidatePolicy
+  class EligibilityService
+  class GiftGrantService
+}
+
+' ===== External APIs（名称占位，突出依赖关系）=====
+package external_feign {
+  interface PortfolioBaseApi
+  interface PackageBaseApi
+  interface PortfolioTrackApi
+  interface PackageTrackApi
+  interface UserPaidStatusApi
+  interface ActivityGiftRightsApi
+}
+
+' ===== 调用关系：清晰突出 Controller → Manager(Impl) → Domain/外部 =====
+interfaces_rest.GiftController --> app_manager.ProductGiftManager : 调用4个API
+app_manager.ProductGiftManagerImpl --> domain_service.GoodsAssembler
+app_manager.ProductGiftManagerImpl --> domain_service.CandidatePolicy
+app_manager.ProductGiftManagerImpl --> domain_service.EligibilityService
+app_manager.ProductGiftManagerImpl --> domain_service.GiftGrantService
+
+app_manager.ProductGiftManagerImpl --> external_feign.PortfolioBaseApi
+app_manager.ProductGiftManagerImpl --> external_feign.PackageBaseApi
+app_manager.ProductGiftManagerImpl --> external_feign.PortfolioTrackApi
+app_manager.ProductGiftManagerImpl --> external_feign.PackageTrackApi
+app_manager.ProductGiftManagerImpl --> external_feign.UserPaidStatusApi
+app_manager.ProductGiftManagerImpl --> external_feign.ActivityGiftRightsApi
+
+' VO 关系（作为入参/出参）
+interfaces_rest.GiftController ..> domain_vo.GoodsBaseVO
+interfaces_rest.GiftController ..> domain_vo.GiftCandidateVO
+app_manager.ProductGiftManager ..> domain_vo.GoodsBaseVO
+app_manager.ProductGiftManager ..> domain_vo.GiftCandidateVO
+@enduml
+
