@@ -1,4 +1,18 @@
 -------------------------------------------------------------------------------
 Test set: com.hexin.gift.modules.gift.domain.service.GiftGrantServiceImplTest
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s - in com.hexin.gift.modules.gift.domain.service.GiftGrantServiceImplTest
+Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 0.029 s <<< FAILURE! - in com.hexin.gift.modules.gift.domain.service.GiftGrantServiceImplTest
+grantBatch_shouldReturnFalseWhenException  Time elapsed: 0.027 s  <<< ERROR!
+java.lang.Error: 
+Unresolved compilation problem: 
+	The constructor GiftGrantServiceImpl(ActivityGiftRightsApi, Clock) is not visible
+
+	at com.hexin.gift.modules.gift.domain.service.GiftGrantServiceImplTest.setUp(GiftGrantServiceImplTest.java:39)
+
+grantBatch_shouldReturnTrueWhenSuccess  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.Error: 
+Unresolved compilation problem: 
+	The constructor GiftGrantServiceImpl(ActivityGiftRightsApi, Clock) is not visible
+
+	at com.hexin.gift.modules.gift.domain.service.GiftGrantServiceImplTest.setUp(GiftGrantServiceImplTest.java:39)
+

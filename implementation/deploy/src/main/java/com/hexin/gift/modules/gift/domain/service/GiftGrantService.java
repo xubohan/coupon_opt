@@ -1,6 +1,5 @@
 package com.hexin.gift.modules.gift.domain.service;
 
-import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 
 import java.util.List;
@@ -10,5 +9,5 @@ import java.util.List;
  */
 public interface GiftGrantService {
 
-    List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<GiftCandidateVO> candidates, Integer attr, String source);
+    List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr, Integer advisorId);
 }

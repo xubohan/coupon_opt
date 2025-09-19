@@ -50,7 +50,7 @@ public class ProductGiftManagerImpl implements ProductGiftManager {
     }
 
     @Override
-    public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<GiftCandidateVO> candidates, Integer attr, String source) {
-        return giftGrantService.grantBatch(selectedGood, candidates, attr, source);
+    public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr, Integer advisorId) {
+        return giftGrantService.grantBatch(selectedGood, candidateUserIds, attr, advisorId);
     }
 }

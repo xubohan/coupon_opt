@@ -106,9 +106,8 @@ class GiftControllerTest {
     @Test
     void grantBatch_shouldReturnBooleanList() throws Exception {
         GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
-        GiftCandidateVO candidate = new GiftCandidateVO(9001, "nick", null, "product", "2024-01-01", 6);
-        GrantBatchQuery command = new GrantBatchQuery(selected, Collections.singletonList(candidate), 7, "source");
-        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyInt(), any())).thenReturn(Collections.singletonList(true));
+        GrantBatchQuery command = new GrantBatchQuery(selected, 7, 88, Collections.singletonList(9001));
+        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyInt(), anyInt())).thenReturn(Collections.singletonList(true));
 
         mockMvc.perform(post("/api/gifts/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -118,14 +117,14 @@ class GiftControllerTest {
 
         ArgumentCaptor<GoodsBaseVO> selectedCaptor = ArgumentCaptor.forClass(GoodsBaseVO.class);
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<GiftCandidateVO>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<Integer>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Integer> attrCaptor = ArgumentCaptor.forClass(Integer.class);
-        ArgumentCaptor<String> sourceCaptor = ArgumentCaptor.forClass(String.class);
-        verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture(), sourceCaptor.capture());
+        ArgumentCaptor<Integer> advisorCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture(), advisorCaptor.capture());
         assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
         assertEquals(1, candidatesCaptor.getValue().size());
-        assertEquals(candidate.getUserId(), candidatesCaptor.getValue().get(0).getUserId());
+        assertEquals(Integer.valueOf(9001), candidatesCaptor.getValue().get(0));
         assertEquals(7, attrCaptor.getValue().intValue());
-        assertEquals("source", sourceCaptor.getValue());
+        assertEquals(Integer.valueOf(88), advisorCaptor.getValue());
     }
 }

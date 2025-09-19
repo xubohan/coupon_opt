@@ -17,5 +17,5 @@ public interface ProductGiftManager {
 
     List<Boolean> checkEligibility(GoodsBaseVO selectedGood, List<Integer> userIds);
 
-    List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<GiftCandidateVO> candidates, Integer attr, String source);
+    List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr, Integer advisorId);
 }

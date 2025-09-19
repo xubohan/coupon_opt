@@ -1,6 +1,5 @@
 package com.hexin.gift.interfaces.rest.query;
 
-import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 
 import javax.validation.Valid;
@@ -17,27 +16,26 @@ public class GrantBatchQuery {
     @NotNull
     private GoodsBaseVO selectedGood;
 
-    @Valid
-    @NotEmpty
-    private List<GiftCandidateVO> candidates;
-
     @NotNull
     private Integer attr;
 
     @NotNull
-    private String source;
+    private Integer advisorId;
+
+    @NotEmpty
+    private List<Integer> candidates;
 
     public GrantBatchQuery() {
     }
 
     public GrantBatchQuery(GoodsBaseVO selectedGood,
-                            List<GiftCandidateVO> candidates,
                             Integer attr,
-                            String source) {
+                            Integer advisorId,
+                            List<Integer> candidates) {
         this.selectedGood = selectedGood;
-        this.candidates = candidates;
         this.attr = attr;
-        this.source = source;
+        this.advisorId = advisorId;
+        this.candidates = candidates;
     }
 
     public GoodsBaseVO getSelectedGood() {
@@ -48,14 +46,6 @@ public class GrantBatchQuery {
         this.selectedGood = selectedGood;
     }
 
-    public List<GiftCandidateVO> getCandidates() {
-        return candidates;
-    }
-
-    public void setCandidates(List<GiftCandidateVO> candidates) {
-        this.candidates = candidates;
-    }
-
     public Integer getAttr() {
         return attr;
     }
@@ -64,11 +54,19 @@ public class GrantBatchQuery {
         this.attr = attr;
     }
 
-    public String getSource() {
-        return source;
+    public Integer getAdvisorId() {
+        return advisorId;
     }
 
-    public void setSource(String source) {
-        this.source = source;
+    public void setAdvisorId(Integer advisorId) {
+        this.advisorId = advisorId;
+    }
+
+    public List<Integer> getCandidates() {
+        return candidates;
+    }
+
+    public void setCandidates(List<Integer> candidates) {
+        this.candidates = candidates;
     }
 }

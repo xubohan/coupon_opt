@@ -81,14 +81,13 @@ class ProductGiftManagerImplTest {
     @Test
     void grantBatch_shouldDelegateToService() {
         GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
-        GiftCandidateVO candidate = new GiftCandidateVO(1001, "nick", null, "product", "20240101", 6);
-        List<GiftCandidateVO> candidates = Collections.singletonList(candidate);
+        List<Integer> candidateIds = Collections.singletonList(1001);
         List<Boolean> expected = Collections.singletonList(Boolean.TRUE);
-        when(giftGrantService.grantBatch(selected, candidates, 7, "source")).thenReturn(expected);
+        when(giftGrantService.grantBatch(selected, candidateIds, 7, 88)).thenReturn(expected);
 
-        List<Boolean> result = manager.grantBatch(selected, candidates, 7, "source");
+        List<Boolean> result = manager.grantBatch(selected, candidateIds, 7, 88);
 
         assertEquals(expected, result);
-        verify(giftGrantService).grantBatch(selected, candidates, 7, "source");
+        verify(giftGrantService).grantBatch(selected, candidateIds, 7, 88);
     }
 }
