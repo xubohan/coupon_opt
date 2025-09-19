@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.hexin.gift.interfaces.rest.GiftControllerTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.25 s - in com.hexin.gift.interfaces.rest.GiftControllerTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.518 s - in com.hexin.gift.interfaces.rest.GiftControllerTest

@@ -2,6 +2,7 @@ package com.hexin.gift.modules.gift.domain.service.impl;
 
 import com.hexin.gift.common.external.rpc.ActivityGiftRightsApi;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
+import com.hexin.gift.interfaces.rest.vo.SellInfoAttr;
 import com.hexin.gift.modules.gift.domain.service.GiftGrantService;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ public class GiftGrantServiceImpl implements GiftGrantService {
     }
 
     @Override
-    public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr) {
+    public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, String attr) {
         if (selectedGood == null || candidateUserIds == null || candidateUserIds.isEmpty()) {
             return Collections.emptyList();
         }
@@ -40,10 +41,11 @@ public class GiftGrantServiceImpl implements GiftGrantService {
                 result.add(Boolean.FALSE);
                 continue;
             }
+            SellInfoAttr sellInfoAttr = SellInfoAttr.parse(attr);
             String source = buildSource(selectedGood, userId);
             try {
                 // 逐个调用外部 Dubbo 接口发放权益，暂无法批量
-                activityGiftRightsApi.addactivitygiftrights(selectedGood.getGoodsId(), attr, userId, source);
+                activityGiftRightsApi.addactivitygiftrights(selectedGood.getGoodsId(), sellInfoAttr, userId, source);
                 //using external api, please check
                 result.add(Boolean.TRUE);
             } catch (Exception ex) {

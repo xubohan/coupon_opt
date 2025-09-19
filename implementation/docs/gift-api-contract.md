@@ -98,7 +98,7 @@
     "type": "PACKAGE",
     "advisorId": 88
   },
-  "attr": 30,
+  "attr": "period:30",
   "candidates": [9001, 9002]
 }
 ```

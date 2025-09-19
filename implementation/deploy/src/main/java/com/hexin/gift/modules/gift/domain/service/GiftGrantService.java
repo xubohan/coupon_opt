@@ -9,5 +9,5 @@ import java.util.List;
  */
 public interface GiftGrantService {
 
-    List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr);
+    List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, String attr);
 }

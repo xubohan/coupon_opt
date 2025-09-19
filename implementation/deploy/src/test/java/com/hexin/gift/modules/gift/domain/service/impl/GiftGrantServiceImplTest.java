@@ -2,6 +2,7 @@ package com.hexin.gift.modules.gift.domain.service.impl;
 
 import com.hexin.gift.common.external.rpc.ActivityGiftRightsApi;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
+import com.hexin.gift.interfaces.rest.vo.SellInfoAttr;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,13 +45,15 @@ class GiftGrantServiceImplTest {
     @Test
     void grantBatch_shouldReturnTrueWhenSuccess() {
         GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
-        doNothing().when(activityGiftRightsApi).addactivitygiftrights(anyLong(), anyInt(), anyInt(), anyString());
+        doNothing().when(activityGiftRightsApi).addactivitygiftrights(anyLong(), any(SellInfoAttr.class), anyInt(), anyString());
 
-        List<Boolean> result = giftGrantService.grantBatch(good, Collections.singletonList(1001), 7);
+        List<Boolean> result = giftGrantService.grantBatch(good, Collections.singletonList(1001), "period:7");
 
         assertEquals(Collections.singletonList(Boolean.TRUE), result);
+        ArgumentCaptor<SellInfoAttr> attrCaptor = ArgumentCaptor.forClass(SellInfoAttr.class);
         ArgumentCaptor<String> sourceCaptor = ArgumentCaptor.forClass(String.class);
-        verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), eq(7), eq(1001), sourceCaptor.capture());
+        verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), attrCaptor.capture(), eq(1001), sourceCaptor.capture());
+        assertEquals("7", attrCaptor.getValue().getValue("period"));
         assertEquals("Advisor 88 granted product {1, PORTFOLIO} to user 1001 on 2024-01-01 08:30:15",
                 sourceCaptor.getValue());
     }
@@ -57,17 +62,17 @@ class GiftGrantServiceImplTest {
     void grantBatch_shouldReturnFalseWhenException() {
         GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         doNothing().when(activityGiftRightsApi)
-                .addactivitygiftrights(eq(1L), eq(7), eq(1001), anyString());
+                .addactivitygiftrights(eq(1L), any(SellInfoAttr.class), eq(1001), anyString());
         doThrow(new RuntimeException("fail"))
                 .when(activityGiftRightsApi)
-                .addactivitygiftrights(eq(1L), eq(7), eq(1002), anyString());
+                .addactivitygiftrights(eq(1L), any(SellInfoAttr.class), eq(1002), anyString());
 
-        List<Boolean> result = giftGrantService.grantBatch(good, Arrays.asList(1001, 1002), 7);
+        List<Boolean> result = giftGrantService.grantBatch(good, Arrays.asList(1001, 1002), "period:7");
 
         assertEquals(Arrays.asList(Boolean.TRUE, Boolean.FALSE), result);
-        verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), eq(7), eq(1001),
+        verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), any(SellInfoAttr.class), eq(1001),
                 eq("Advisor 88 granted product {1, PORTFOLIO} to user 1001 on 2024-01-01 08:30:15"));
-        verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), eq(7), eq(1002),
+        verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), any(SellInfoAttr.class), eq(1002),
                 eq("Advisor 88 granted product {1, PORTFOLIO} to user 1002 on 2024-01-01 08:30:15"));
     }
 }

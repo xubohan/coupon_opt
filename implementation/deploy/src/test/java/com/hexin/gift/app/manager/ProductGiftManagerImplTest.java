@@ -83,11 +83,11 @@ class ProductGiftManagerImplTest {
         GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         List<Integer> candidateIds = Collections.singletonList(1001);
         List<Boolean> expected = Collections.singletonList(Boolean.TRUE);
-        when(giftGrantService.grantBatch(selected, candidateIds, 7)).thenReturn(expected);
+        when(giftGrantService.grantBatch(selected, candidateIds, "period:7")).thenReturn(expected);
 
-        List<Boolean> result = manager.grantBatch(selected, candidateIds, 7);
+        List<Boolean> result = manager.grantBatch(selected, candidateIds, "period:7");
 
         assertEquals(expected, result);
-        verify(giftGrantService).grantBatch(selected, candidateIds, 7);
+        verify(giftGrantService).grantBatch(selected, candidateIds, "period:7");
     }
 }

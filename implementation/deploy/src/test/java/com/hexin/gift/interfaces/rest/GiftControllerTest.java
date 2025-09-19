@@ -25,6 +25,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -106,8 +107,8 @@ class GiftControllerTest {
     @Test
     void grantBatch_shouldReturnBooleanList() throws Exception {
         GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
-        GrantBatchQuery command = new GrantBatchQuery(selected, 7, Collections.singletonList(9001));
-        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyInt())).thenReturn(Collections.singletonList(true));
+        GrantBatchQuery command = new GrantBatchQuery(selected, "period:7", Collections.singletonList(9001));
+        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyString())).thenReturn(Collections.singletonList(true));
 
         mockMvc.perform(post("/api/gifts/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -118,11 +119,11 @@ class GiftControllerTest {
         ArgumentCaptor<GoodsBaseVO> selectedCaptor = ArgumentCaptor.forClass(GoodsBaseVO.class);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Integer>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
-        ArgumentCaptor<Integer> attrCaptor = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<String> attrCaptor = ArgumentCaptor.forClass(String.class);
         verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture());
         assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
         assertEquals(1, candidatesCaptor.getValue().size());
         assertEquals(Integer.valueOf(9001), candidatesCaptor.getValue().get(0));
-        assertEquals(7, attrCaptor.getValue().intValue());
+        assertEquals("period:7", attrCaptor.getValue());
     }
 }

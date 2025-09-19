@@ -19,6 +19,7 @@
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/PackageTrackApi.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/dto/PortfolioBaseDTO.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/CheckEligibilityQuery.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/vo/SellInfoAttr.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/PortfolioTrackApi.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/impl/CandidatePolicyImpl.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/app/manager/impl/ProductGiftManagerImpl.java

@@ -17,7 +17,7 @@ public class GrantBatchQuery {
     private GoodsBaseVO selectedGood;
 
     @NotNull
-    private Integer attr;
+    private String attr;
 
     @NotEmpty
     private List<Integer> candidates;
@@ -26,7 +26,7 @@ public class GrantBatchQuery {
     }
 
     public GrantBatchQuery(GoodsBaseVO selectedGood,
-                            Integer attr,
+                            String attr,
                             List<Integer> candidates) {
         this.selectedGood = selectedGood;
         this.attr = attr;
@@ -41,11 +41,11 @@ public class GrantBatchQuery {
         this.selectedGood = selectedGood;
     }
 
-    public Integer getAttr() {
+    public String getAttr() {
         return attr;
     }
 
-    public void setAttr(Integer attr) {
+    public void setAttr(String attr) {
         this.attr = attr;
     }
 
