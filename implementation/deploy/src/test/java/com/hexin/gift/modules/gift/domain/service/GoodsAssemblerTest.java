@@ -53,8 +53,10 @@ class GoodsAssemblerTest {
         assertEquals(2, goods.size());
         assertEquals(101L, goods.get(0).getGoodsId().longValue());
         assertEquals("PORTFOLIO", goods.get(0).getType());
+        assertEquals(Integer.valueOf(1), goods.get(0).getAdvisorId());
         assertEquals(201L, goods.get(1).getGoodsId().longValue());
         assertEquals("PACKAGE", goods.get(1).getType());
+        assertEquals(Integer.valueOf(1), goods.get(1).getAdvisorId());
     }
 
     @Test
@@ -66,5 +68,6 @@ class GoodsAssemblerTest {
 
         assertEquals(1, goods.size());
         assertEquals("PACKAGE", goods.get(0).getType());
+        assertEquals(Integer.valueOf(2), goods.get(0).getAdvisorId());
     }
 }

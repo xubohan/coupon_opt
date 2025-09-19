@@ -41,7 +41,7 @@ class ProductGiftManagerImplTest {
 
     @Test
     void listGoods_shouldDelegateToAssembler() {
-        List<GoodsBaseVO> goods = Collections.singletonList(new GoodsBaseVO(1L, "name", "PORTFOLIO"));
+        List<GoodsBaseVO> goods = Collections.singletonList(new GoodsBaseVO(1L, "name", "PORTFOLIO", 88));
         when(goodsAssembler.listGoods(123)).thenReturn(goods);
 
         ListGoodsQuery query = new ListGoodsQuery(123);
@@ -54,7 +54,7 @@ class ProductGiftManagerImplTest {
 
     @Test
     void listCandidates_shouldDelegateToPolicy() {
-        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         List<GoodsBaseVO> allGoods = Collections.singletonList(selected);
         List<GiftCandidateVO> expected = Collections.singletonList(new GiftCandidateVO(1, "nick", null, "p", "20240101", 6));
         when(candidatePolicy.listCandidates(selected, allGoods)).thenReturn(expected);
@@ -67,7 +67,7 @@ class ProductGiftManagerImplTest {
 
     @Test
     void checkEligibility_shouldDelegateToService() {
-        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         List<Integer> userIds = Collections.singletonList(1001);
         List<Boolean> expected = Collections.singletonList(Boolean.TRUE);
         when(eligibilityService.checkEligibility(selected, userIds)).thenReturn(expected);
@@ -80,14 +80,14 @@ class ProductGiftManagerImplTest {
 
     @Test
     void grantBatch_shouldDelegateToService() {
-        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         List<Integer> candidateIds = Collections.singletonList(1001);
         List<Boolean> expected = Collections.singletonList(Boolean.TRUE);
-        when(giftGrantService.grantBatch(selected, candidateIds, 7, 88)).thenReturn(expected);
+        when(giftGrantService.grantBatch(selected, candidateIds, 7)).thenReturn(expected);
 
-        List<Boolean> result = manager.grantBatch(selected, candidateIds, 7, 88);
+        List<Boolean> result = manager.grantBatch(selected, candidateIds, 7);
 
         assertEquals(expected, result);
-        verify(giftGrantService).grantBatch(selected, candidateIds, 7, 88);
+        verify(giftGrantService).grantBatch(selected, candidateIds, 7);
     }
 }

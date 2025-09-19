@@ -39,7 +39,7 @@ public class GoodsAssemblerImpl implements GoodsAssembler {
             if (dto == null || dto.getPortfolioId() == null) {
                 continue;
             }
-            goods.add(new GoodsBaseVO(dto.getPortfolioId(), dto.getPortfolioName(), TYPE_PORTFOLIO));
+            goods.add(new GoodsBaseVO(dto.getPortfolioId(), dto.getPortfolioName(), TYPE_PORTFOLIO, advisorId));
         }
 
         //using external api, please check
@@ -50,7 +50,7 @@ public class GoodsAssemblerImpl implements GoodsAssembler {
             if (dto == null || dto.getPackageId() == null) {
                 continue;
             }
-            goods.add(new GoodsBaseVO(dto.getPackageId(), dto.getPackageName(), TYPE_PACKAGE));
+            goods.add(new GoodsBaseVO(dto.getPackageId(), dto.getPackageName(), TYPE_PACKAGE, advisorId));
         }
 
         return goods;

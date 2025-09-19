@@ -24,7 +24,7 @@
 - **interfaces/rest/converter` & `app/manager/converter`**: Narrow conversions between external DTOs and internal VO structures.
 
 ## Data Contracts
-- `GoodsBaseVO`: `{ goodsId: Long, goodsName: String, type: String }`.
+- `GoodsBaseVO`: `{ goodsId: Long, goodsName: String, type: String, advisorId: Integer }`.
 - `GiftCandidateVO`: `{ userId: Integer, nickName: String, avatarUrl: String, productName: String, purchaseDate: String, durationMonths: Integer }`.
 - REST payloads:
   - `ListGoodsQuery`: `advisorId` (Integer, required).
@@ -44,17 +44,17 @@
    - Build `CandidatePolicy` to fetch all paid users, derive diff, enrich latest order info.
    - Tests: `CandidatePolicyTest` covering portfolio/package, empty diff, ordering rules.
 4. **Eligibility evaluation**
-   - Stand up `EligibilityService` skeleton; annotate the external Dubbo invocations as `// TODO` or keep them commented until dependencies are finalised.
-   - Tests: `EligibilityServiceTest` may assert current placeholder behaviour (e.g., returns default set) and be expanded once APIs are wired.
+   - 保持 `EligibilityService` 为 TODO 骨架，并标注外部 Dubbo 检查待接入。
+   - Tests: `EligibilityServiceTest` 验证当前占位行为（全部返回 false），待接口确认后再扩展。
 5. **Gift grant orchestration**
-   - Codify `GiftGrantService` to iterate candidates, call `ActivityGiftRightsApi`, capture boolean outcomes.
-   - Tests: `GiftGrantServiceTest` covering success, exception -> false, order preserved.
+   - 串行调用 `ActivityGiftRightsApi` 并在服务端拼装 `source`（选用 selectedGood.advisorId、goodsId、type、userId）。
+   - Tests: `GiftGrantServiceTest` 覆盖成功/失败并断言 `source` 文案格式。
 6. **ProductGiftManagerImpl**
    - Integrate domain services + external APIs, implement four manager methods delegating appropriately.
    - Tests: `ProductGiftManagerImplTest` using mocks to confirm sequencing and parameter passing.
 7. **Finalize REST controller**
-   - Wire validation, inject manager, map manager outputs to response VOs.
-   - Tests: Extend `GiftControllerTest` with MockMvc behavioural tests (status, payload structure).
+   - Wire validation, inject manager, map manager outputs to response VOs，确保 `/grant` 不再暴露 `advisorId` 字段。
+   - Tests: Extend `GiftControllerTest` with MockMvc behavioural tests (status, payload structure)。
 8. **Integration smoke (optional)**
    - If feasible, add Spring slice test verifying Dubbo clients mocked via stubs and all beans load.
 

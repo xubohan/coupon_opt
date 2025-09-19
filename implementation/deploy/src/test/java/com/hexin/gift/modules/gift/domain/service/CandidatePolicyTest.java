@@ -42,9 +42,9 @@ class CandidatePolicyTest {
 
     @BeforeEach
     void setUp() {
-        selectedPortfolio = new GoodsBaseVO(1L, "portfolio-1", "PORTFOLIO");
-        anotherPortfolio = new GoodsBaseVO(2L, "portfolio-2", "PORTFOLIO");
-        somePackage = new GoodsBaseVO(100L, "package-1", "PACKAGE");
+        selectedPortfolio = new GoodsBaseVO(1L, "portfolio-1", "PORTFOLIO", 88);
+        anotherPortfolio = new GoodsBaseVO(2L, "portfolio-2", "PORTFOLIO", 88);
+        somePackage = new GoodsBaseVO(100L, "package-1", "PACKAGE", 88);
     }
 
     @Test

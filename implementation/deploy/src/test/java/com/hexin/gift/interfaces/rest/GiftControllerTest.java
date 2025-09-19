@@ -47,7 +47,7 @@ class GiftControllerTest {
 
     @Test
     void listGoods_shouldReturnGoodsList() throws Exception {
-        List<GoodsBaseVO> goods = Collections.singletonList(new GoodsBaseVO(1L, "portfolio", "PORTFOLIO"));
+        List<GoodsBaseVO> goods = Collections.singletonList(new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88));
         ListGoodsQuery expectedQuery = new ListGoodsQuery(101);
         when(productGiftManager.listGoods(any(ListGoodsQuery.class))).thenReturn(goods);
 
@@ -63,7 +63,7 @@ class GiftControllerTest {
 
     @Test
     void listCandidates_shouldReturnCandidateList() throws Exception {
-        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         ListCandidatesQuery query = new ListCandidatesQuery(selected, Collections.singletonList(selected));
         GiftCandidateVO candidate = new GiftCandidateVO(9001, "nick", null, "product", "2024-01-01", 6);
         when(productGiftManager.listCandidates(any(GoodsBaseVO.class), any())).thenReturn(Collections.singletonList(candidate));
@@ -85,7 +85,7 @@ class GiftControllerTest {
 
     @Test
     void checkEligibility_shouldReturnBooleanList() throws Exception {
-        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         CheckEligibilityQuery command = new CheckEligibilityQuery(selected, Arrays.asList(1, 2));
         when(productGiftManager.checkEligibility(any(GoodsBaseVO.class), any())).thenReturn(Arrays.asList(true, false));
 
@@ -105,9 +105,9 @@ class GiftControllerTest {
 
     @Test
     void grantBatch_shouldReturnBooleanList() throws Exception {
-        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
-        GrantBatchQuery command = new GrantBatchQuery(selected, 7, 88, Collections.singletonList(9001));
-        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyInt(), anyInt())).thenReturn(Collections.singletonList(true));
+        GoodsBaseVO selected = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
+        GrantBatchQuery command = new GrantBatchQuery(selected, 7, Collections.singletonList(9001));
+        when(productGiftManager.grantBatch(any(GoodsBaseVO.class), any(), anyInt())).thenReturn(Collections.singletonList(true));
 
         mockMvc.perform(post("/api/gifts/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -119,12 +119,10 @@ class GiftControllerTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Integer>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Integer> attrCaptor = ArgumentCaptor.forClass(Integer.class);
-        ArgumentCaptor<Integer> advisorCaptor = ArgumentCaptor.forClass(Integer.class);
-        verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture(), advisorCaptor.capture());
+        verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture());
         assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
         assertEquals(1, candidatesCaptor.getValue().size());
         assertEquals(Integer.valueOf(9001), candidatesCaptor.getValue().get(0));
         assertEquals(7, attrCaptor.getValue().intValue());
-        assertEquals(Integer.valueOf(88), advisorCaptor.getValue());
     }
 }

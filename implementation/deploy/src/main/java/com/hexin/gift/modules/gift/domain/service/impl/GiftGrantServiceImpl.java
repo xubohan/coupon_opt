@@ -30,7 +30,7 @@ public class GiftGrantServiceImpl implements GiftGrantService {
     }
 
     @Override
-    public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr, Integer advisorId) {
+    public List<Boolean> grantBatch(GoodsBaseVO selectedGood, List<Integer> candidateUserIds, Integer attr) {
         if (selectedGood == null || candidateUserIds == null || candidateUserIds.isEmpty()) {
             return Collections.emptyList();
         }
@@ -40,7 +40,7 @@ public class GiftGrantServiceImpl implements GiftGrantService {
                 result.add(Boolean.FALSE);
                 continue;
             }
-            String source = buildSource(advisorId, selectedGood, userId);
+            String source = buildSource(selectedGood, userId);
             try {
                 // 逐个调用外部 Dubbo 接口发放权益，暂无法批量
                 activityGiftRightsApi.addactivitygiftrights(selectedGood.getGoodsId(), attr, userId, source);
@@ -53,8 +53,10 @@ public class GiftGrantServiceImpl implements GiftGrantService {
         return result;
     }
 
-    private String buildSource(Integer advisorId, GoodsBaseVO selectedGood, Integer userId) {
-        int advisor = advisorId != null ? advisorId : -1;
+    private String buildSource(GoodsBaseVO selectedGood, Integer userId) {
+        int advisor = selectedGood != null && selectedGood.getAdvisorId() != null
+                ? selectedGood.getAdvisorId()
+                : -1;
         Long goodsId = selectedGood != null ? selectedGood.getGoodsId() : null;
         String type = selectedGood != null ? selectedGood.getType() : null;
         long safeGoodsId = goodsId != null ? goodsId : -1L;

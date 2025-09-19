@@ -17,14 +17,14 @@ class EligibilityServiceImplTest {
 
     @Test
     void checkEligibility_shouldReturnEmptyWhenNoUsers() {
-        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         List<Boolean> result = eligibilityService.checkEligibility(good, Collections.emptyList());
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void checkEligibility_shouldReturnFalsePlaceholder() {
-        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+    void checkEligibility_shouldReturnFalsePlaceholders() {
+        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         List<Boolean> result = eligibilityService.checkEligibility(good, Arrays.asList(1001, 1002));
         assertEquals(Arrays.asList(Boolean.FALSE, Boolean.FALSE), result);
     }

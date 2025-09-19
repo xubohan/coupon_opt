@@ -41,10 +41,10 @@ class GiftGrantServiceImplTest {
 
     @Test
     void grantBatch_shouldReturnTrueWhenSuccess() {
-        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         doNothing().when(activityGiftRightsApi).addactivitygiftrights(anyLong(), anyInt(), anyInt(), anyString());
 
-        List<Boolean> result = giftGrantService.grantBatch(good, Collections.singletonList(1001), 7, 88);
+        List<Boolean> result = giftGrantService.grantBatch(good, Collections.singletonList(1001), 7);
 
         assertEquals(Collections.singletonList(Boolean.TRUE), result);
         ArgumentCaptor<String> sourceCaptor = ArgumentCaptor.forClass(String.class);
@@ -55,14 +55,14 @@ class GiftGrantServiceImplTest {
 
     @Test
     void grantBatch_shouldReturnFalseWhenException() {
-        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO");
+        GoodsBaseVO good = new GoodsBaseVO(1L, "portfolio", "PORTFOLIO", 88);
         doNothing().when(activityGiftRightsApi)
                 .addactivitygiftrights(eq(1L), eq(7), eq(1001), anyString());
         doThrow(new RuntimeException("fail"))
                 .when(activityGiftRightsApi)
                 .addactivitygiftrights(eq(1L), eq(7), eq(1002), anyString());
 
-        List<Boolean> result = giftGrantService.grantBatch(good, Arrays.asList(1001, 1002), 7, 88);
+        List<Boolean> result = giftGrantService.grantBatch(good, Arrays.asList(1001, 1002), 7);
 
         assertEquals(Arrays.asList(Boolean.TRUE, Boolean.FALSE), result);
         verify(activityGiftRightsApi).addactivitygiftrights(eq(1L), eq(7), eq(1001),

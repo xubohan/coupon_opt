@@ -57,7 +57,7 @@ public class GiftController {
     @PostMapping("/grant")
     public ResponseEntity<List<Boolean>> grantBatch(@Valid @RequestBody GrantBatchQuery command) {
         List<Boolean> result = productGiftManager.grantBatch(command.getSelectedGood(),
-                command.getCandidates(), command.getAttr(), command.getAdvisorId());
+                command.getCandidates(), command.getAttr());
         return ResponseEntity.ok(converter.toBooleanResponse(result));
     }
 }

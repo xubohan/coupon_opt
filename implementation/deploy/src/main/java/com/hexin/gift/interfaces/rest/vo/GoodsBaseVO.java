@@ -16,13 +16,17 @@ public class GoodsBaseVO {
     @NotNull
     private String type;
 
+    @NotNull
+    private Integer advisorId;
+
     public GoodsBaseVO() {
     }
 
-    public GoodsBaseVO(Long goodsId, String goodsName, String type) {
+    public GoodsBaseVO(Long goodsId, String goodsName, String type, Integer advisorId) {
         this.goodsId = goodsId;
         this.goodsName = goodsName;
         this.type = type;
+        this.advisorId = advisorId;
     }
 
     public Long getGoodsId() {
@@ -47,5 +51,13 @@ public class GoodsBaseVO {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Integer getAdvisorId() {
+        return advisorId;
+    }
+
+    public void setAdvisorId(Integer advisorId) {
+        this.advisorId = advisorId;
     }
 }
