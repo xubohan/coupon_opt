@@ -50,6 +50,7 @@ public class GiftController {
 
     @PostMapping("/check-eligibility")
     public ResponseEntity<List<Boolean>> checkEligibility(@Valid @RequestBody CheckEligibilityQuery command) {
+        // TODO 暂未对接外部校验接口，仅保留占位返回
         List<Boolean> result = productGiftManager.checkEligibility(command.getSelectedGood(), command.getUserIds());
         return ResponseEntity.ok(converter.toBooleanResponse(result));
     }
