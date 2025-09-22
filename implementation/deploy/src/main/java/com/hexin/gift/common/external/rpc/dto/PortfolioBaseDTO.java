@@ -6,14 +6,14 @@ package com.hexin.gift.common.external.rpc.dto;
 public class PortfolioBaseDTO {
 
     private Long portfolioId;
-    private String portfolioName;
+    private String name;
 
     public PortfolioBaseDTO() {
     }
 
-    public PortfolioBaseDTO(Long portfolioId, String portfolioName) {
+    public PortfolioBaseDTO(Long portfolioId, String name) {
         this.portfolioId = portfolioId;
-        this.portfolioName = portfolioName;
+        this.name = name;
     }
 
     public Long getPortfolioId() {
@@ -24,11 +24,11 @@ public class PortfolioBaseDTO {
         this.portfolioId = portfolioId;
     }
 
-    public String getPortfolioName() {
-        return portfolioName;
+    public String getName() {
+        return name;
     }
 
-    public void setPortfolioName(String portfolioName) {
-        this.portfolioName = portfolioName;
+    public void setName(String name) {
+        this.name = name;
     }
 }

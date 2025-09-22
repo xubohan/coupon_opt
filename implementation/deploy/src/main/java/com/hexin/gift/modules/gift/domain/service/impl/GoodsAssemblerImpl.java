@@ -33,24 +33,24 @@ public class GoodsAssemblerImpl implements GoodsAssembler {
 
         //using external api, please check
         List<PortfolioBaseDTO> portfolioBaseList = Optional
-                .ofNullable(portfolioBaseApi.getportfoliochargebaselist(advisorId))
+                .ofNullable(portfolioBaseApi.getPortfolioBaseChargeList(advisorId))
                 .orElse(Collections.emptyList());
         for (PortfolioBaseDTO dto : portfolioBaseList) {
             if (dto == null || dto.getPortfolioId() == null) {
                 continue;
             }
-            goods.add(new GoodsBaseVO(dto.getPortfolioId(), dto.getPortfolioName(), TYPE_PORTFOLIO, advisorId));
+            goods.add(new GoodsBaseVO(dto.getPortfolioId(), dto.getName(), TYPE_PORTFOLIO, advisorId));
         }
 
         //using external api, please check
         List<PackageBaseDTO> packageBaseList = Optional
-                .ofNullable(packageBaseApi.getpackagebaselist(advisorId))
+                .ofNullable(packageBaseApi.getPackageChargeList(advisorId))
                 .orElse(Collections.emptyList());
         for (PackageBaseDTO dto : packageBaseList) {
-            if (dto == null || dto.getPackageId() == null) {
+            if (dto == null || dto.getId() == null) {
                 continue;
             }
-            goods.add(new GoodsBaseVO(dto.getPackageId(), dto.getPackageName(), TYPE_PACKAGE, advisorId));
+            goods.add(new GoodsBaseVO(dto.getId(), dto.getName(), TYPE_PACKAGE, advisorId));
         }
 
         return goods;

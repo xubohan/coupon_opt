@@ -43,9 +43,9 @@ class GoodsAssemblerTest {
 
     @Test
     void listGoods_shouldMergePortfolioAndPackage() {
-        when(portfolioBaseApi.getportfoliochargebaselist(1))
+        when(portfolioBaseApi.getPortfolioBaseChargeList(1))
                 .thenReturn(Collections.singletonList(portfolioOne));
-        when(packageBaseApi.getpackagebaselist(1))
+        when(packageBaseApi.getPackageChargeList(1))
                 .thenReturn(Collections.singletonList(packageOne));
 
         List<GoodsBaseVO> goods = goodsAssembler.listGoods(1);
@@ -61,8 +61,8 @@ class GoodsAssemblerTest {
 
     @Test
     void listGoods_shouldHandleNullResponses() {
-        when(portfolioBaseApi.getportfoliochargebaselist(2)).thenReturn(null);
-        when(packageBaseApi.getpackagebaselist(2)).thenReturn(Arrays.asList(packageOne, new PackageBaseDTO(null, "invalid")));
+        when(portfolioBaseApi.getPortfolioBaseChargeList(2)).thenReturn(null);
+        when(packageBaseApi.getPackageChargeList(2)).thenReturn(Arrays.asList(packageOne, new PackageBaseDTO(null, "invalid")));
 
         List<GoodsBaseVO> goods = goodsAssembler.listGoods(2);
 

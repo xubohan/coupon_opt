@@ -13,6 +13,7 @@
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/CandidatePolicy.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/GrantBatchQuery.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/GoodsAssembler.java
+/Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/vo/BaseResponse.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/common/external/rpc/dto/PackageTrackUsersDTO.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/modules/gift/domain/service/impl/EligibilityServiceImpl.java
 /Users/bohan/Documents/coupon_opt/implementation/deploy/src/main/java/com/hexin/gift/interfaces/rest/query/ListCandidatesQuery.java

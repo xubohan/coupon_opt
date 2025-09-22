@@ -11,4 +11,9 @@ public interface PortfolioBaseApi {
         //using external api, please check
         return Collections.emptyList();
     }
+
+    default List<PortfolioBaseDTO> getPortfolioBaseChargeList(Integer advisorId) {
+        //using external api, please check
+        return Collections.emptyList();
+    }
 }

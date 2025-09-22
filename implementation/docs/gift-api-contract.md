@@ -10,14 +10,18 @@
 
 - **响应体** `200 OK`
 ```json
-[
-  {
-    "goodsId": 101,
-    "goodsName": "高端组合",
-    "type": "PORTFOLIO",
-    "advisorId": 88
-  }
-]
+{
+  "errorCode": 0,
+  "errorMsg": "OK",
+  "result": [
+    {
+      "goodsId": 101,
+      "goodsName": "高端组合",
+      "type": "PORTFOLIO",
+      "advisorId": 88
+    }
+  ]
+}
 ```
 
 ## 2. POST `/api/gifts/candidates`
@@ -51,21 +55,26 @@
 
 - **响应体** `200 OK`
 ```json
-[
-  {
-    "userId": 9001,
-    "nickName": "张三",
-    "avatarUrl": "https://...",
-    "productName": "Pro套餐",
-    "purchaseDate": "2024-01-01 08:30:15",
-    "durationMonths": 6
-  }
-]
+{
+  "errorCode": 0,
+  "errorMsg": "OK",
+  "result": [
+    {
+      "userId": 9001,
+      "nickName": "张三",
+      "avatarUrl": "https://...",
+      "productName": "Pro套餐",
+      "purchaseDate": "2024-01-01 08:30:15",
+      "durationMonths": 6
+    }
+  ]
+}
 ```
 前端可自行做分页或筛选。
 
 ## 3. POST `/api/gifts/check-eligibility`
 按顺序校验一组用户是否满足赠送条件。
+（当前接口仅保留占位，待外部校验接口确认后开放）
 
 - **请求体**
 ```json
@@ -82,7 +91,11 @@
 
 - **响应体** `200 OK`
 ```json
-[true, false, true]
+{
+  "errorCode": 0,
+  "errorMsg": "OK",
+  "result": [true, false, true]
+}
 ```
 结果顺序与请求中 `userIds` 保持一致。
 
@@ -105,7 +118,11 @@
 
 - **响应体** `200 OK`
 ```json
-[true, false]
+{
+  "errorCode": 0,
+  "errorMsg": "OK",
+  "result": [true, false]
+}
 ```
 数组元素代表各用户赠送结果，索引与 `candidates` 对应。服务器端会生成如下格式的 `source` 并逐个调用 Dubbo：
 

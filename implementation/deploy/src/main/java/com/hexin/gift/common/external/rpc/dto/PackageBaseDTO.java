@@ -5,30 +5,30 @@ package com.hexin.gift.common.external.rpc.dto;
  */
 public class PackageBaseDTO {
 
-    private Long packageId;
-    private String packageName;
+    private Long id;
+    private String name;
 
     public PackageBaseDTO() {
     }
 
-    public PackageBaseDTO(Long packageId, String packageName) {
-        this.packageId = packageId;
-        this.packageName = packageName;
+    public PackageBaseDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    public Long getPackageId() {
-        return packageId;
+    public Long getId() {
+        return id;
     }
 
-    public void setPackageId(Long packageId) {
-        this.packageId = packageId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getPackageName() {
-        return packageName;
+    public String getName() {
+        return name;
     }
 
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
+    public void setName(String name) {
+        this.name = name;
     }
 }

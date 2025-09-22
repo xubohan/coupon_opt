@@ -11,4 +11,9 @@ public interface PackageBaseApi {
         //using external api, please check
         return Collections.emptyList();
     }
+
+    default List<PackageBaseDTO> getPackageChargeList(Integer advisorId) {
+        //using external api, please check
+        return Collections.emptyList();
+    }
 }

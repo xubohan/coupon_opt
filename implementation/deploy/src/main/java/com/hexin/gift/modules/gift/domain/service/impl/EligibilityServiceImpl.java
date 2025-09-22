@@ -31,7 +31,7 @@ public class EligibilityServiceImpl implements EligibilityService {
             } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
                 //using external api, please check
             }
-            result.add(Boolean.FALSE);
+            result.add(Boolean.FALSE); // 占位返回，接口待实现
         }
         return result;
     }
