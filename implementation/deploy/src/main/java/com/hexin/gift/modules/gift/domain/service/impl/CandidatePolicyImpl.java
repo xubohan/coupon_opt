@@ -1,14 +1,23 @@
 package com.hexin.gift.modules.gift.domain.service.impl;
 
+import com.hexin.gift.common.external.rpc.PackageStatProvider;
 import com.hexin.gift.common.external.rpc.PackageTrackApi;
+import com.hexin.gift.common.external.rpc.PortfolioSpendApi;
 import com.hexin.gift.common.external.rpc.PortfolioTrackApi;
+import com.hexin.gift.common.external.rpc.dto.PackageSpendDTO;
 import com.hexin.gift.common.external.rpc.dto.PackageTrackUsersDTO;
+import com.hexin.gift.common.external.rpc.dto.PortfolioSpendDubboDTO;
 import com.hexin.gift.common.external.rpc.dto.PortfolioTrackUsersDTO;
 import com.hexin.gift.interfaces.rest.vo.GiftCandidateVO;
 import com.hexin.gift.interfaces.rest.vo.GoodsBaseVO;
 import com.hexin.gift.modules.gift.domain.service.CandidatePolicy;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,14 +32,21 @@ public class CandidatePolicyImpl implements CandidatePolicy {
 
     private static final String TYPE_PORTFOLIO = "PORTFOLIO";
     private static final String TYPE_PACKAGE = "PACKAGE";
+    private static final DateTimeFormatter PURCHASE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final PortfolioTrackApi portfolioTrackApi;
     private final PackageTrackApi packageTrackApi;
+    private final PortfolioSpendApi portfolioSpendApi;
+    private final PackageStatProvider packageStatProvider;
 
     public CandidatePolicyImpl(PortfolioTrackApi portfolioTrackApi,
-                               PackageTrackApi packageTrackApi) {
+                               PackageTrackApi packageTrackApi,
+                               PortfolioSpendApi portfolioSpendApi,
+                               PackageStatProvider packageStatProvider) {
         this.portfolioTrackApi = portfolioTrackApi;
         this.packageTrackApi = packageTrackApi;
+        this.portfolioSpendApi = portfolioSpendApi;
+        this.packageStatProvider = packageStatProvider;
     }
 
     @Override
@@ -52,38 +68,43 @@ public class CandidatePolicyImpl implements CandidatePolicy {
             }
         }
 
-        // 汇总顾问名下所有组合与套餐的付费记录
         List<PortfolioTrackUsersDTO> allPortfolioPaid = Collections.emptyList();
         if (!allPortfolioIds.isEmpty()) {
-            //using external api, please check
             List<PortfolioTrackUsersDTO> queried = portfolioTrackApi.getPortfolioTrackList(new ArrayList<>(allPortfolioIds));
             allPortfolioPaid = queried != null ? queried : Collections.emptyList();
         }
         List<PackageTrackUsersDTO> allPackagePaid = Collections.emptyList();
         if (!allPackageIds.isEmpty()) {
-            //using external api, please check
             List<PackageTrackUsersDTO> queried = packageTrackApi.getPackageTrackList(new ArrayList<>(allPackageIds));
             allPackagePaid = queried != null ? queried : Collections.emptyList();
         }
 
-        // 选中商品的付费用户集合，用于差集
         Set<Integer> selectedPaidUserIds = new HashSet<>();
         if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
-            //using external api, please check
             List<PortfolioTrackUsersDTO> selectedPortfolioPaid = portfolioTrackApi
                     .getPortfolioTrackList(Collections.singletonList(selectedGood.getGoodsId()));
             addUserIds(selectedPaidUserIds, selectedPortfolioPaid);
         } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
-            //using external api, please check
             List<PackageTrackUsersDTO> selectedPackagePaid = packageTrackApi
                     .getPackageTrackList(Collections.singletonList(selectedGood.getGoodsId()));
             addUserIds(selectedPaidUserIds, selectedPackagePaid);
         }
 
-        // 以用户为粒度挑选最新订单信息
         Map<Integer, AggregateCandidate> aggregate = new HashMap<>();
         appendCandidates(aggregate, allPortfolioPaid, selectedGood, selectedPaidUserIds, TYPE_PORTFOLIO);
         appendCandidates(aggregate, allPackagePaid, selectedGood, selectedPaidUserIds, TYPE_PACKAGE);
+
+        if (!aggregate.isEmpty()) {
+            List<Integer> candidateIds = new ArrayList<>(aggregate.keySet());
+            if (!allPortfolioIds.isEmpty()) {
+                List<PortfolioSpendDubboDTO> spends = portfolioSpendApi.getSpendByPortIdBuyer(new ArrayList<>(allPortfolioIds), candidateIds);
+                mergePortfolioSpend(aggregate, spends);
+            }
+            if (!allPackageIds.isEmpty()) {
+                List<PackageSpendDTO> spends = packageStatProvider.getSpendByPackageBuyer(new ArrayList<>(allPackageIds), candidateIds);
+                mergePackageSpend(aggregate, spends);
+            }
+        }
 
         List<GiftCandidateVO> result = new ArrayList<>(aggregate.size());
         for (AggregateCandidate candidate : aggregate.values()) {
@@ -150,9 +171,107 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         }
     }
 
+    private void mergePortfolioSpend(Map<Integer, AggregateCandidate> aggregate,
+                                     List<PortfolioSpendDubboDTO> spends) {
+        if (spends == null) {
+            return;
+        }
+        Map<Integer, PortfolioSpendDubboDTO> latest = new HashMap<>();
+        for (PortfolioSpendDubboDTO dto : spends) {
+            if (dto == null || dto.getBuyerId() == null || dto.getStartAt() == null) {
+                continue;
+            }
+            if (!aggregate.containsKey(dto.getBuyerId())) {
+                continue;
+            }
+            PortfolioSpendDubboDTO existing = latest.get(dto.getBuyerId());
+            if (existing == null || dto.getStartAt().isAfter(existing.getStartAt())) {
+                latest.put(dto.getBuyerId(), dto);
+            }
+        }
+        for (Map.Entry<Integer, PortfolioSpendDubboDTO> entry : latest.entrySet()) {
+            AggregateCandidate candidate = aggregate.get(entry.getKey());
+            if (candidate == null) {
+                continue;
+            }
+            PortfolioSpendDubboDTO dto = entry.getValue();
+            LocalDateTime startAt = dto.getStartAt();
+            LocalDateTime endAt = dto.getEndAt();
+            String purchaseDate = startAt != null ? startAt.format(PURCHASE_FORMATTER) : null;
+            Integer durationMonths = calculateMonths(startAt, endAt);
+            candidate.updateSpendInfo(dto.getProductName(), purchaseDate, durationMonths);
+        }
+    }
+
+    private void mergePackageSpend(Map<Integer, AggregateCandidate> aggregate,
+                                   List<PackageSpendDTO> spends) {
+        if (spends == null) {
+            return;
+        }
+        Map<Integer, PackageSpendDTO> latest = new HashMap<>();
+        for (PackageSpendDTO dto : spends) {
+            if (dto == null || dto.getBuyerId() == null || dto.getStartTime() == null) {
+                continue;
+            }
+            if (!aggregate.containsKey(dto.getBuyerId())) {
+                continue;
+            }
+            PackageSpendDTO existing = latest.get(dto.getBuyerId());
+            if (existing == null || isAfter(dto.getStartTime(), existing.getStartTime())) {
+                latest.put(dto.getBuyerId(), dto);
+            }
+        }
+        for (Map.Entry<Integer, PackageSpendDTO> entry : latest.entrySet()) {
+            AggregateCandidate candidate = aggregate.get(entry.getKey());
+            if (candidate == null) {
+                continue;
+            }
+            PackageSpendDTO dto = entry.getValue();
+            LocalDateTime startAt = toLocalDateTime(dto.getStartTime());
+            LocalDateTime endAt = toLocalDateTime(dto.getEndTime());
+            String purchaseDate = startAt != null ? startAt.format(PURCHASE_FORMATTER) : null;
+            Integer durationMonths = calculateMonths(startAt, endAt);
+            candidate.updateSpendInfo(dto.getPackageName(), purchaseDate, durationMonths);
+        }
+    }
+
+    private boolean isAfter(Long startTime, Long otherStart) {
+        LocalDateTime start = toLocalDateTime(startTime);
+        LocalDateTime other = toLocalDateTime(otherStart);
+        if (start == null) {
+            return false;
+        }
+        if (other == null) {
+            return true;
+        }
+        return start.isAfter(other);
+    }
+
+    private LocalDateTime toLocalDateTime(Long epochMillis) {
+        if (epochMillis == null) {
+            return null;
+        }
+        return Instant.ofEpochMilli(epochMillis)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
+    private Integer calculateMonths(LocalDateTime start, LocalDateTime end) {
+        if (start == null || end == null) {
+            return null;
+        }
+        long months = ChronoUnit.MONTHS.between(start, end);
+        if (months < 0) {
+            months = 0;
+        }
+        return (int) months;
+    }
+
     private static final class AggregateCandidate {
         private final Integer userId;
-        private final String productName;
+        private String productName;
+        private String purchaseDate;
+        private Integer durationMonths;
 
         private AggregateCandidate(Integer userId,
                                    String productName) {
@@ -160,8 +279,16 @@ public class CandidatePolicyImpl implements CandidatePolicy {
             this.productName = productName;
         }
 
+        private void updateSpendInfo(String productName, String purchaseDate, Integer durationMonths) {
+            if (productName != null) {
+                this.productName = productName;
+            }
+            this.purchaseDate = purchaseDate;
+            this.durationMonths = durationMonths;
+        }
+
         private GiftCandidateVO toVO() {
-            return new GiftCandidateVO(userId, null, null, productName, null, null);
+            return new GiftCandidateVO(userId, null, null, productName, purchaseDate, durationMonths);
         }
     }
 }
