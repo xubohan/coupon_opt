@@ -11,4 +11,9 @@ public interface PackageTrackApi {
         //using external api, please check
         return Collections.emptyList();
     }
+
+    default List<PackageTrackUsersDTO> getPackageTrackList(List<Long> packageIds) {
+        //using external api, please check
+        return Collections.emptyList();
+    }
 }

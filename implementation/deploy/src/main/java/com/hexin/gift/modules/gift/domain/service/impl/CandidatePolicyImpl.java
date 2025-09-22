@@ -56,13 +56,13 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         List<PortfolioTrackUsersDTO> allPortfolioPaid = Collections.emptyList();
         if (!allPortfolioIds.isEmpty()) {
             //using external api, please check
-            List<PortfolioTrackUsersDTO> queried = portfolioTrackApi.portfoliotracklist(new ArrayList<>(allPortfolioIds));
+            List<PortfolioTrackUsersDTO> queried = portfolioTrackApi.getPortfolioTrackList(new ArrayList<>(allPortfolioIds));
             allPortfolioPaid = queried != null ? queried : Collections.emptyList();
         }
         List<PackageTrackUsersDTO> allPackagePaid = Collections.emptyList();
         if (!allPackageIds.isEmpty()) {
             //using external api, please check
-            List<PackageTrackUsersDTO> queried = packageTrackApi.packagetracklist(new ArrayList<>(allPackageIds));
+            List<PackageTrackUsersDTO> queried = packageTrackApi.getPackageTrackList(new ArrayList<>(allPackageIds));
             allPackagePaid = queried != null ? queried : Collections.emptyList();
         }
 
@@ -71,57 +71,19 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
             //using external api, please check
             List<PortfolioTrackUsersDTO> selectedPortfolioPaid = portfolioTrackApi
-                    .portfoliotracklist(Collections.singletonList(selectedGood.getGoodsId()));
-            if (selectedPortfolioPaid != null) {
-                for (PortfolioTrackUsersDTO dto : selectedPortfolioPaid) {
-                    if (dto != null && dto.getUserId() != null) {
-                        selectedPaidUserIds.add(dto.getUserId());
-                    }
-                }
-            }
+                    .getPortfolioTrackList(Collections.singletonList(selectedGood.getGoodsId()));
+            addUserIds(selectedPaidUserIds, selectedPortfolioPaid);
         } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
             //using external api, please check
             List<PackageTrackUsersDTO> selectedPackagePaid = packageTrackApi
-                    .packagetracklist(Collections.singletonList(selectedGood.getGoodsId()));
-            if (selectedPackagePaid != null) {
-                for (PackageTrackUsersDTO dto : selectedPackagePaid) {
-                    if (dto != null && dto.getUserId() != null) {
-                        selectedPaidUserIds.add(dto.getUserId());
-                    }
-                }
-            }
+                    .getPackageTrackList(Collections.singletonList(selectedGood.getGoodsId()));
+            addUserIds(selectedPaidUserIds, selectedPackagePaid);
         }
 
         // 以用户为粒度挑选最新订单信息
         Map<Integer, AggregateCandidate> aggregate = new HashMap<>();
-        for (PortfolioTrackUsersDTO dto : allPortfolioPaid) {
-            if (dto == null || dto.getUserId() == null) {
-                continue;
-            }
-            if (dto.getPortfolioId() != null && dto.getPortfolioId().equals(selectedGood.getGoodsId())
-                    && TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
-                continue;
-            }
-            if (selectedPaidUserIds.contains(dto.getUserId())) {
-                continue;
-            }
-            mergeCandidate(aggregate, dto.getUserId(), dto.getNickName(), dto.getAvatarUrl(),
-                    dto.getProductName(), dto.getSubscribeStart(), dto.getPurchaseTime(), dto.getDurationMonths());
-        }
-        for (PackageTrackUsersDTO dto : allPackagePaid) {
-            if (dto == null || dto.getUserId() == null) {
-                continue;
-            }
-            if (dto.getPackageId() != null && dto.getPackageId().equals(selectedGood.getGoodsId())
-                    && TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
-                continue;
-            }
-            if (selectedPaidUserIds.contains(dto.getUserId())) {
-                continue;
-            }
-            mergeCandidate(aggregate, dto.getUserId(), dto.getNickName(), dto.getAvatarUrl(),
-                    dto.getProductName(), dto.getSubscribeStart(), dto.getPurchaseTime(), dto.getDurationMonths());
-        }
+        appendCandidates(aggregate, allPortfolioPaid, selectedGood, selectedPaidUserIds, TYPE_PORTFOLIO);
+        appendCandidates(aggregate, allPackagePaid, selectedGood, selectedPaidUserIds, TYPE_PACKAGE);
 
         List<GiftCandidateVO> result = new ArrayList<>(aggregate.size());
         for (AggregateCandidate candidate : aggregate.values()) {
@@ -130,80 +92,76 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         return result;
     }
 
-    private void mergeCandidate(Map<Integer, AggregateCandidate> aggregate,
-                                Integer userId,
-                                String nickName,
-                                String avatarUrl,
-                                String productName,
-                                Long subscribeStart,
-                                Long purchaseTime,
-                                Integer durationMonths) {
-        AggregateCandidate existing = aggregate.get(userId);
-        if (existing == null) {
-            aggregate.put(userId, new AggregateCandidate(userId, nickName, avatarUrl, productName,
-                    subscribeStart, purchaseTime, durationMonths));
-            return;
-        }
-        if (isBetter(subscribeStart, purchaseTime, existing)) {
-            existing.update(productName, nickName, avatarUrl, subscribeStart, purchaseTime, durationMonths);
+    private void appendCandidates(Map<Integer, AggregateCandidate> aggregate,
+                                  List<?> trackList,
+                                  GoodsBaseVO selectedGood,
+                                  Set<Integer> selectedPaidUserIds,
+                                  String type) {
+        for (Object obj : trackList) {
+            if (obj instanceof PortfolioTrackUsersDTO) {
+                PortfolioTrackUsersDTO dto = (PortfolioTrackUsersDTO) obj;
+                if (TYPE_PORTFOLIO.equalsIgnoreCase(type) && Objects.equals(dto.getPortfolioId(), selectedGood.getGoodsId())
+                        && TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
+                    continue;
+                }
+                addUsersFromList(aggregate, dto.getUserIds(), dto.getName(), selectedPaidUserIds);
+            } else if (obj instanceof PackageTrackUsersDTO) {
+                PackageTrackUsersDTO dto = (PackageTrackUsersDTO) obj;
+                if (TYPE_PACKAGE.equalsIgnoreCase(type) && Objects.equals(dto.getPackageId(), selectedGood.getGoodsId())
+                        && TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
+                    continue;
+                }
+                addUsersFromList(aggregate, dto.getUserIds(), dto.getName(), selectedPaidUserIds);
+            }
         }
     }
 
-    private boolean isBetter(Long subscribeStart, Long purchaseTime, AggregateCandidate existing) {
-        if (subscribeStart != null && (existing.subscribeStart == null || subscribeStart > existing.subscribeStart)) {
-            return true;
+    private void addUsersFromList(Map<Integer, AggregateCandidate> aggregate,
+                                  List<Integer> userIds,
+                                  String productName,
+                                  Set<Integer> selectedPaidUserIds) {
+        if (userIds == null) {
+            return;
         }
-        if (Objects.equals(subscribeStart, existing.subscribeStart)) {
-            if (purchaseTime != null && (existing.purchaseTime == null || purchaseTime > existing.purchaseTime)) {
-                return true;
+        for (Integer uid : userIds) {
+            if (uid == null || selectedPaidUserIds.contains(uid)) {
+                continue;
+            }
+            aggregate.putIfAbsent(uid, new AggregateCandidate(uid, productName));
+        }
+    }
+
+    private void addUserIds(Set<Integer> collector, List<? extends Object> trackList) {
+        if (trackList == null) {
+            return;
+        }
+        for (Object obj : trackList) {
+            if (obj instanceof PortfolioTrackUsersDTO) {
+                List<Integer> ids = ((PortfolioTrackUsersDTO) obj).getUserIds();
+                if (ids != null) {
+                    collector.addAll(ids);
+                }
+            } else if (obj instanceof PackageTrackUsersDTO) {
+                List<Integer> ids = ((PackageTrackUsersDTO) obj).getUserIds();
+                if (ids != null) {
+                    collector.addAll(ids);
+                }
             }
         }
-        return false;
     }
 
     private static final class AggregateCandidate {
         private final Integer userId;
-        private String productName;
-        private String nickName;
-        private String avatarUrl;
-        private Long subscribeStart;
-        private Long purchaseTime;
-        private Integer durationMonths;
+        private final String productName;
 
         private AggregateCandidate(Integer userId,
-                                   String nickName,
-                                   String avatarUrl,
-                                   String productName,
-                                   Long subscribeStart,
-                                   Long purchaseTime,
-                                   Integer durationMonths) {
+                                   String productName) {
             this.userId = userId;
-            this.nickName = nickName;
-            this.avatarUrl = avatarUrl;
             this.productName = productName;
-            this.subscribeStart = subscribeStart;
-            this.purchaseTime = purchaseTime;
-            this.durationMonths = durationMonths;
-        }
-
-        private void update(String productName,
-                             String nickName,
-                             String avatarUrl,
-                             Long subscribeStart,
-                             Long purchaseTime,
-                             Integer durationMonths) {
-            this.productName = productName;
-            this.nickName = nickName;
-            this.avatarUrl = avatarUrl;
-            this.subscribeStart = subscribeStart;
-            this.purchaseTime = purchaseTime;
-            this.durationMonths = durationMonths;
         }
 
         private GiftCandidateVO toVO() {
-            String purchaseDate = subscribeStart != null ? String.valueOf(subscribeStart)
-                    : (purchaseTime != null ? String.valueOf(purchaseTime) : null);
-            return new GiftCandidateVO(userId, nickName, avatarUrl, productName, purchaseDate, durationMonths);
+            return new GiftCandidateVO(userId, null, null, productName, null, null);
         }
     }
 }

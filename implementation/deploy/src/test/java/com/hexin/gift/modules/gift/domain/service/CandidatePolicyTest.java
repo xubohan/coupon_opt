@@ -48,38 +48,35 @@ class CandidatePolicyTest {
     }
 
     @Test
-    void listCandidates_shouldExcludeSelectedPaidUsersAndPreferLatestOrder() {
-        PortfolioTrackUsersDTO portfolioCandidate = new PortfolioTrackUsersDTO(2001, 2L, "userA",
-                "avatarA", "Product A", 1_000L, 900L, 6);
-        PortfolioTrackUsersDTO selectedUser = new PortfolioTrackUsersDTO(3001, 1L, "selected",
-                null, "Selected Product", 2_000L, 1_500L, 12);
-        PackageTrackUsersDTO packageCandidateNewer = new PackageTrackUsersDTO(2001, 100L, "userA",
-                "avatarA2", "Product B", 3_000L, 2_500L, 3);
-        PackageTrackUsersDTO packageCandidateUnique = new PackageTrackUsersDTO(4001, 100L, "userB",
-                "avatarB", "Product C", 2_500L, 2_000L, 1);
+    void listCandidates_shouldExcludeSelectedPaidUsers() {
+        PortfolioTrackUsersDTO portfolioCandidate = new PortfolioTrackUsersDTO(2L, "Product A", "detailA",
+                Arrays.asList(2001, 2002));
+        PortfolioTrackUsersDTO selectedUsers = new PortfolioTrackUsersDTO(1L, "Selected Product", "detailSel",
+                Collections.singletonList(3001));
+        PackageTrackUsersDTO packageCandidateUnique = new PackageTrackUsersDTO(100L, "Product B", "detailB",
+                Arrays.asList(2001, 4001));
 
-        when(portfolioTrackApi.portfoliotracklist(argThat(list -> list != null && list.size() > 1)))
-                .thenReturn(Arrays.asList(portfolioCandidate, selectedUser));
-        when(portfolioTrackApi.portfoliotracklist(argThat(list -> list != null && list.size() == 1
+        when(portfolioTrackApi.getPortfolioTrackList(argThat(list -> list != null && list.size() > 1)))
+                .thenReturn(Arrays.asList(portfolioCandidate, selectedUsers));
+        when(portfolioTrackApi.getPortfolioTrackList(argThat(list -> list != null && list.size() == 1
                 && list.contains(selectedPortfolio.getGoodsId()))))
-                .thenReturn(Collections.singletonList(selectedUser));
+                .thenReturn(Collections.singletonList(selectedUsers));
 
-        when(packageTrackApi.packagetracklist(argThat(list -> list != null && list.size() == 1
+        when(packageTrackApi.getPackageTrackList(argThat(list -> list != null && list.size() == 1
                 && list.contains(somePackage.getGoodsId()))))
-                .thenReturn(Arrays.asList(packageCandidateNewer, packageCandidateUnique));
+                .thenReturn(Collections.singletonList(packageCandidateUnique));
 
         List<GiftCandidateVO> result = candidatePolicy.listCandidates(selectedPortfolio,
                 Arrays.asList(selectedPortfolio, anotherPortfolio, somePackage));
 
-        assertEquals(2, result.size());
+        assertEquals(3, result.size());
+        assertTrue(result.stream().noneMatch(vo -> vo.getUserId().equals(3001)));
         GiftCandidateVO userA = result.stream()
                 .filter(vo -> vo.getUserId().equals(2001))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("userA missing"));
-        assertEquals("Product B", userA.getProductName());
-        assertEquals("3000", userA.getPurchaseDate());
-        assertEquals(Integer.valueOf(3), userA.getDurationMonths());
-
-        assertTrue(result.stream().noneMatch(vo -> vo.getUserId().equals(3001)));
+        assertEquals("Product A", userA.getProductName());
+        assertTrue(result.stream().anyMatch(vo -> vo.getUserId().equals(2002)));
+        assertTrue(result.stream().anyMatch(vo -> vo.getUserId().equals(4001)));
     }
 }

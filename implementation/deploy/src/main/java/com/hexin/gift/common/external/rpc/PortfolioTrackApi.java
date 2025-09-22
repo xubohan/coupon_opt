@@ -11,4 +11,9 @@ public interface PortfolioTrackApi {
         //using external api, please check
         return Collections.emptyList();
     }
+
+    default List<PortfolioTrackUsersDTO> getPortfolioTrackList(List<Long> portfolioIds) {
+        //using external api, please check
+        return Collections.emptyList();
+    }
 }
