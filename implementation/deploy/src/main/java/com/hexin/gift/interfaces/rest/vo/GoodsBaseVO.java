@@ -8,13 +8,13 @@ import javax.validation.constraints.NotNull;
 public class GoodsBaseVO {
 
     @NotNull
-    private Long goodsId;
+    private Long productId;
 
     @NotNull
-    private String goodsName;
+    private String productName;
 
     @NotNull
-    private String type;
+    private String productType;
 
     @NotNull
     private Integer advisorId;
@@ -22,35 +22,35 @@ public class GoodsBaseVO {
     public GoodsBaseVO() {
     }
 
-    public GoodsBaseVO(Long goodsId, String goodsName, String type, Integer advisorId) {
-        this.goodsId = goodsId;
-        this.goodsName = goodsName;
-        this.type = type;
+    public GoodsBaseVO(Long productId, String productName, String productType, Integer advisorId) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productType = productType;
         this.advisorId = advisorId;
     }
 
-    public Long getGoodsId() {
-        return goodsId;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setGoodsId(Long goodsId) {
-        this.goodsId = goodsId;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
-    public String getGoodsName() {
-        return goodsName;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setGoodsName(String goodsName) {
-        this.goodsName = goodsName;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public String getType() {
-        return type;
+    public String getProductType() {
+        return productType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setProductType(String productType) {
+        this.productType = productType;
     }
 
     public Integer getAdvisorId() {

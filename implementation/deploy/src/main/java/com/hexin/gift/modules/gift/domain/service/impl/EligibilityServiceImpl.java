@@ -26,9 +26,9 @@ public class EligibilityServiceImpl implements EligibilityService {
                 continue;
             }
             // TODO 调用外部 Dubbo 接口校验是否已购买当前产品
-            if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
+            if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getProductType())) {
                 //using external api, please check
-            } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
+            } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getProductType())) {
                 //using external api, please check
             }
             result.add(Boolean.FALSE); // 占位返回，接口待实现

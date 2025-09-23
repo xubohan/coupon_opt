@@ -79,9 +79,9 @@ class GiftControllerTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<GoodsBaseVO>> goodsListCaptor = ArgumentCaptor.forClass(List.class);
         verify(productGiftManager).listCandidates(selectedCaptor.capture(), goodsListCaptor.capture());
-        assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
+        assertEquals(selected.getProductId(), selectedCaptor.getValue().getProductId());
         assertEquals(1, goodsListCaptor.getValue().size());
-        assertEquals(selected.getGoodsId(), goodsListCaptor.getValue().get(0).getGoodsId());
+        assertEquals(selected.getProductId(), goodsListCaptor.getValue().get(0).getProductId());
     }
 
     @Test
@@ -100,7 +100,7 @@ class GiftControllerTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Integer>> userIdsCaptor = ArgumentCaptor.forClass(List.class);
         verify(productGiftManager).checkEligibility(selectedCaptor.capture(), userIdsCaptor.capture());
-        assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
+        assertEquals(selected.getProductId(), selectedCaptor.getValue().getProductId());
         assertEquals(Arrays.asList(1, 2), userIdsCaptor.getValue());
     }
 
@@ -121,7 +121,7 @@ class GiftControllerTest {
         ArgumentCaptor<List<Integer>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> attrCaptor = ArgumentCaptor.forClass(String.class);
         verify(productGiftManager).grantBatch(selectedCaptor.capture(), candidatesCaptor.capture(), attrCaptor.capture());
-        assertEquals(selected.getGoodsId(), selectedCaptor.getValue().getGoodsId());
+        assertEquals(selected.getProductId(), selectedCaptor.getValue().getProductId());
         assertEquals(1, candidatesCaptor.getValue().size());
         assertEquals(Integer.valueOf(9001), candidatesCaptor.getValue().get(0));
         assertEquals("period:7", attrCaptor.getValue());

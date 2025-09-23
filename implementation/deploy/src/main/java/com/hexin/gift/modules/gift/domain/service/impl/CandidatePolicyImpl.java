@@ -58,13 +58,13 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         Set<Long> allPortfolioIds = new HashSet<>();
         Set<Long> allPackageIds = new HashSet<>();
         for (GoodsBaseVO good : allGoods) {
-            if (good == null || good.getGoodsId() == null) {
+            if (good == null || good.getProductId() == null) {
                 continue;
             }
-            if (TYPE_PORTFOLIO.equalsIgnoreCase(good.getType())) {
-                allPortfolioIds.add(good.getGoodsId());
-            } else if (TYPE_PACKAGE.equalsIgnoreCase(good.getType())) {
-                allPackageIds.add(good.getGoodsId());
+            if (TYPE_PORTFOLIO.equalsIgnoreCase(good.getProductType())) {
+                allPortfolioIds.add(good.getProductId());
+            } else if (TYPE_PACKAGE.equalsIgnoreCase(good.getProductType())) {
+                allPackageIds.add(good.getProductId());
             }
         }
 
@@ -80,13 +80,13 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         }
 
         Set<Integer> selectedPaidUserIds = new HashSet<>();
-        if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
+        if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getProductType())) {
             List<PortfolioTrackUsersDTO> selectedPortfolioPaid = portfolioTrackApi
-                    .getPortfolioTrackList(Collections.singletonList(selectedGood.getGoodsId()));
+                    .getPortfolioTrackList(Collections.singletonList(selectedGood.getProductId()));
             addUserIds(selectedPaidUserIds, selectedPortfolioPaid);
-        } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
+        } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getProductType())) {
             List<PackageTrackUsersDTO> selectedPackagePaid = packageTrackApi
-                    .getPackageTrackList(Collections.singletonList(selectedGood.getGoodsId()));
+                    .getPackageTrackList(Collections.singletonList(selectedGood.getProductId()));
             addUserIds(selectedPaidUserIds, selectedPackagePaid);
         }
 
@@ -121,15 +121,15 @@ public class CandidatePolicyImpl implements CandidatePolicy {
         for (Object obj : trackList) {
             if (obj instanceof PortfolioTrackUsersDTO) {
                 PortfolioTrackUsersDTO dto = (PortfolioTrackUsersDTO) obj;
-                if (TYPE_PORTFOLIO.equalsIgnoreCase(type) && Objects.equals(dto.getPortfolioId(), selectedGood.getGoodsId())
-                        && TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
+                if (TYPE_PORTFOLIO.equalsIgnoreCase(type) && Objects.equals(dto.getPortfolioId(), selectedGood.getProductId())
+                        && TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getProductType())) {
                     continue;
                 }
                 addUsersFromList(aggregate, dto.getUserIds(), dto.getName(), selectedPaidUserIds);
             } else if (obj instanceof PackageTrackUsersDTO) {
                 PackageTrackUsersDTO dto = (PackageTrackUsersDTO) obj;
-                if (TYPE_PACKAGE.equalsIgnoreCase(type) && Objects.equals(dto.getPackageId(), selectedGood.getGoodsId())
-                        && TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
+                if (TYPE_PACKAGE.equalsIgnoreCase(type) && Objects.equals(dto.getPackageId(), selectedGood.getProductId())
+                        && TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getProductType())) {
                     continue;
                 }
                 addUsersFromList(aggregate, dto.getUserIds(), dto.getName(), selectedPaidUserIds);

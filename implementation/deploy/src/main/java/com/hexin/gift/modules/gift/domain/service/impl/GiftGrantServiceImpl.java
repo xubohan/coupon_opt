@@ -70,15 +70,15 @@ public class GiftGrantServiceImpl implements GiftGrantService {
     }
 
     private Long resolveGoodsId(GoodsBaseVO selectedGood) {
-        if (selectedGood == null || selectedGood.getGoodsId() == null) {
+        if (selectedGood == null || selectedGood.getProductId() == null) {
             return null;
         }
-        Long originalId = selectedGood.getGoodsId();
-        if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getType())) {
+        Long originalId = selectedGood.getProductId();
+        if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getProductType())) {
             //using external api, please check
             return portfolioGoodsApi.getGoodsIdById(originalId);
         }
-        if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getType())) {
+        if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getProductType())) {
             //using external api, please check
             return packageGoodsApi.getGoodsIdById(originalId);
         }
@@ -89,8 +89,8 @@ public class GiftGrantServiceImpl implements GiftGrantService {
         int advisor = selectedGood != null && selectedGood.getAdvisorId() != null
                 ? selectedGood.getAdvisorId()
                 : -1;
-        Long goodsId = selectedGood != null ? selectedGood.getGoodsId() : null;
-        String type = selectedGood != null ? selectedGood.getType() : null;
+        Long goodsId = selectedGood != null ? selectedGood.getProductId() : null;
+        String type = selectedGood != null ? selectedGood.getProductType() : null;
         long safeGoodsId = goodsId != null ? goodsId : -1L;
         String safeType = type != null ? type : "UNKNOWN";
         String timestamp = LocalDateTime.now(clock).format(SOURCE_FORMATTER);

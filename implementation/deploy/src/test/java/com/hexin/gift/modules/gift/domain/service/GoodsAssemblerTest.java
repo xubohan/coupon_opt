@@ -51,11 +51,11 @@ class GoodsAssemblerTest {
         List<GoodsBaseVO> goods = goodsAssembler.listGoods(1);
 
         assertEquals(2, goods.size());
-        assertEquals(101L, goods.get(0).getGoodsId().longValue());
-        assertEquals("PORTFOLIO", goods.get(0).getType());
+        assertEquals(101L, goods.get(0).getProductId().longValue());
+        assertEquals("PORTFOLIO", goods.get(0).getProductType());
         assertEquals(Integer.valueOf(1), goods.get(0).getAdvisorId());
-        assertEquals(201L, goods.get(1).getGoodsId().longValue());
-        assertEquals("PACKAGE", goods.get(1).getType());
+        assertEquals(201L, goods.get(1).getProductId().longValue());
+        assertEquals("PACKAGE", goods.get(1).getProductType());
         assertEquals(Integer.valueOf(1), goods.get(1).getAdvisorId());
     }
 
@@ -67,7 +67,7 @@ class GoodsAssemblerTest {
         List<GoodsBaseVO> goods = goodsAssembler.listGoods(2);
 
         assertEquals(1, goods.size());
-        assertEquals("PACKAGE", goods.get(0).getType());
+        assertEquals("PACKAGE", goods.get(0).getProductType());
         assertEquals(Integer.valueOf(2), goods.get(0).getAdvisorId());
     }
 }

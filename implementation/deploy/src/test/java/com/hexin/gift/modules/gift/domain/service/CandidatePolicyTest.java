@@ -68,13 +68,13 @@ class CandidatePolicyTest {
         when(portfolioTrackApi.getPortfolioTrackList(argThat(list -> list != null && list.size() > 1)))
                 .thenReturn(Arrays.asList(portfolioUsers, selectedUsers));
         when(portfolioTrackApi.getPortfolioTrackList(argThat(list -> list != null && list.size() == 1
-                && list.contains(selectedPortfolio.getGoodsId()))))
+                && list.contains(selectedPortfolio.getProductId()))))
                 .thenReturn(Collections.singletonList(selectedUsers));
 
         PackageTrackUsersDTO packageUsers = new PackageTrackUsersDTO(100L, "Product B", "detailB",
                 Arrays.asList(2001, 4001));
         when(packageTrackApi.getPackageTrackList(argThat(list -> list != null && list.size() == 1
-                && list.contains(somePackage.getGoodsId()))))
+                && list.contains(somePackage.getProductId()))))
                 .thenReturn(Collections.singletonList(packageUsers));
 
         LocalDateTime newestStart = LocalDateTime.of(2024, 2, 1, 10, 0);
