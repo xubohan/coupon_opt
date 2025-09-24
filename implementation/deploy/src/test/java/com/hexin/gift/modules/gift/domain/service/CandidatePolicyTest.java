@@ -147,11 +147,12 @@ class CandidatePolicyTest {
         GoodsBaseVO package404 = new GoodsBaseVO(404L, "财富启航包", "PACKAGE", 88);
         GoodsBaseVO package405 = new GoodsBaseVO(405L, "财富启1航包", "PACKAGE", 88);
         GoodsBaseVO portfolio101 = new GoodsBaseVO(101L, "高端组合", "PORTFOLIO", 88);
+        GoodsBaseVO portfolio501 = new GoodsBaseVO(501L, "智慧组合", "PORTFOLIO", 88);
         
-        List<GoodsBaseVO> allGoods = Arrays.asList(portfolio101, selectedPackage, package404, package405);
+        List<GoodsBaseVO> allGoods = Arrays.asList(portfolio101, selectedPackage, package404, package405, portfolio501);
         
         // Mock Package跟踪数据
-        // 选中产品(202)的用户: 112, 123, 111, 110, 112 (包含重复)
+        // 选中产品(202)的用户: 112, 123, 111, 110, 122
         PackageTrackUsersDTO selectedTrack = new PackageTrackUsersDTO(202, "Pro套餐", "detail", 
                 Arrays.asList(112, 123, 111, 110, 122));
         
@@ -165,6 +166,15 @@ class CandidatePolicyTest {
         
         when(packageTrackApi.getPackageTrackList(anyList()))
                 .thenReturn(Arrays.asList(selectedTrack, candidate404Track, candidate405Track));
+        
+        // Mock Portfolio跟踪数据 - 添加来验证统一处理流程
+        PortfolioTrackUsersDTO portfolio101Track = new PortfolioTrackUsersDTO(101L, "高端组合", "detail", 
+                Arrays.asList(111, 199, 298, 283, 110)); // 包含与选中产品重复的用户111,110
+        PortfolioTrackUsersDTO portfolio501Track = new PortfolioTrackUsersDTO(501L, "智慧组合", "detail", 
+                Arrays.asList(211, 212, 213));
+        
+        when(portfolioTrackApi.getPortfolioTrackList(anyList()))
+                .thenReturn(Arrays.asList(portfolio101Track, portfolio501Track));
         
         // Mock订单数据 - 为候选用户创建多笔不同时间的订单，测试最新订单保留逻辑
         long start2024_01 = LocalDateTime.of(2024, 1, 1, 10, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -227,12 +237,51 @@ class CandidatePolicyTest {
         when(packageStatProvider.getSpendByPackageBuyer(anyList(), anyList()))
                 .thenReturn(spends);
         
+        // Mock Portfolio订单数据 - 为候选用户创建随机日期的订单
+        List<PortfolioSpendDubboDTO> portfolioSpends = Arrays.asList(
+                // 用户199的订单（与选中产品无重复，应保留）
+                new PortfolioSpendDubboDTO(101L, 199, "高端组合产品", 
+                        LocalDateTime.of(2024, 3, 15, 14, 30), 
+                        LocalDateTime.of(2024, 7, 15, 14, 30)),
+                
+                // 用户298的订单（与选中产品无重复，应保留）
+                new PortfolioSpendDubboDTO(101L, 298, "高端组合产品", 
+                        LocalDateTime.of(2024, 2, 20, 9, 15), 
+                        LocalDateTime.of(2024, 6, 20, 9, 15)),
+                
+                // 用户283的订单（与选中产品无重复，应保留）
+                new PortfolioSpendDubboDTO(501L, 283, "智慧组合产品", 
+                        LocalDateTime.of(2024, 4, 10, 16, 45), 
+                        LocalDateTime.of(2024, 8, 10, 16, 45)),
+                
+                // 用户211的订单
+                new PortfolioSpendDubboDTO(501L, 211, "智慧组合产品", 
+                        LocalDateTime.of(2024, 1, 25, 11, 20), 
+                        LocalDateTime.of(2024, 5, 25, 11, 20)),
+                
+                // 用户212的订单
+                new PortfolioSpendDubboDTO(501L, 212, "智慧组合产品", 
+                        LocalDateTime.of(2024, 6, 8, 13, 10), 
+                        LocalDateTime.of(2024, 10, 8, 13, 10)),
+                
+                // 用户213的订单
+                new PortfolioSpendDubboDTO(501L, 213, "智慧组合产品", 
+                        LocalDateTime.of(2024, 7, 3, 8, 50), 
+                        LocalDateTime.of(2024, 11, 3, 8, 50))
+        );
+        
+        when(portfolioSpendApi.getSpendByPortIdBuyer(anyList(), anyList()))
+                .thenReturn(portfolioSpends);
+        
         // 执行测试
         System.out.println("选中产品: " + selectedPackage.getProductName() + " (ID: " + selectedPackage.getProductId() + ")");
+        System.out.println("所有产品: Portfolio[101,501] + Package[202,404,405]");
         System.out.println("选中产品用户: [112, 123, 111, 110, 122]");
-        System.out.println("候选产品404用户: [111, 122, 110, 113, 115, 100, 116]");
-        System.out.println("候选产品405用户: [199, 112, 299, 872, 113]");
-        System.out.println("\n开始过滤和合并最新订单...");
+        System.out.println("候选Package404用户: [111, 122, 110, 113, 115, 100, 116] - 排除[111,122,110]");
+        System.out.println("候选Package405用户: [199, 112, 299, 872, 113] - 排除[112]");
+        System.out.println("候选Portfolio101用户: [111, 199, 298, 283, 110] - 排除[111,110]");
+        System.out.println("候选Portfolio501用户: [211, 212, 213] - 无排除");
+        System.out.println("\n开始统一处理流程(混合Portfolio+Package)过滤和合并最新订单...");
         
         List<GiftCandidateVO> result = candidatePolicy.listCandidates(selectedPackage, allGoods);
         
@@ -249,25 +298,123 @@ class CandidatePolicyTest {
         System.out.println("预期排除的用户(选中产品用户): [112, 123, 111, 110, 122]");
         System.out.println("预期保留的用户: [113, 115, 100, 116, 199, 299, 872] (不包含122，因为122在选中产品用户列表中)");
         System.out.println("最新订单选择规则: 每个用户只保留开始时间最晚的订单");
-        System.out.println("预期的最新订单:");
-        System.out.println("用户113: 2024-05-01 订单 (财富启航包-最新订单)");
-        System.out.println("用户100: 2024-09-01 订单 (财富启航包-最新订单)");
-        System.out.println("用户199: 2024-09-01 订单 (财富启1航包-最新订单)");
-        System.out.println("用户299: 2024-05-01 订单 (财富启1航包-最新订单)");
-        System.out.println("注意: 用户122虽然有订单，但因为在选中产品用户列表中被正确排除");
+        // 验证统一处理流程逻辑
+        System.out.println("\n验证统一处理流程逻辑:");
+        System.out.println("预期排除的用户(选中产品用户): [112, 123, 111, 110, 122]");
+        System.out.println("预期保留的用户: Package[113,115,100,116,199,299,872] + Portfolio[298,283,211,212,213]");
+        System.out.println("最新订单选择规则: 每个用户只保留开始时间最晚的订单");
+        System.out.println("注意: 用户111,110被Portfolio排除，用户112,122被Package排除，但用户199在两个类型中都存在");
         
         // 验证结果
-        assertEquals(7, result.size(), "应该有7个候选用户(用户122被正确排除)");
+        assertEquals(12, result.size(), "应该有12个候选用户(Package7个+Portfolio5个)");
         
         // 验证用户ID去重和过滤正确性
         Set<Integer> resultUserIds = result.stream()
                 .map(GiftCandidateVO::getUserId)
                 .collect(java.util.stream.Collectors.toSet());
         
-        Set<Integer> expectedUsers = new HashSet<>(Arrays.asList(113, 115, 100, 116, 199, 299, 872)); // 移除用户122
-        assertEquals(expectedUsers, resultUserIds, "过滤后的用户ID应该匹配预期");
+        // Package用户: 113,115,100,116,199,299,872 + Portfolio用户: 298,283,211,212,213
+        Set<Integer> expectedUsers = new HashSet<>(Arrays.asList(113, 115, 100, 116, 199, 299, 872, 298, 283, 211, 212, 213));
+        assertEquals(expectedUsers, resultUserIds, "应该包含来自Package和Portfolio的所有候选用户");
         
-        System.out.println("\n测试通过！用户过滤和去重功能正常。");
-        System.out.println("========== Package用户过滤和去重测试结束 ==========");
+        System.out.println("\n测试通过！统一处理流程正常工作，支持混合Portfolio+Package产品类型。");
+        System.out.println("========== Package+Portfolio统一处理测试结束 ==========");
+    }
+    
+    @Test
+    void testUnifiedProcessingFlow() {
+        // 测试统一处理流程：混合Portfolio和Package产品的候选用户筛选
+        System.out.println("========== 开始测试统一处理流程 ==========");
+        
+        // 选中产品是Portfolio类型
+        GoodsBaseVO selectedPortfolio = new GoodsBaseVO(101L, "高端组合", "PORTFOLIO", 88);
+        
+        // 混合产品列表：包含Portfolio和Package两种类型
+        GoodsBaseVO portfolio201 = new GoodsBaseVO(201L, "财富组合", "PORTFOLIO", 88);
+        GoodsBaseVO package301 = new GoodsBaseVO(301L, "智能套餐", "PACKAGE", 88);
+        GoodsBaseVO package401 = new GoodsBaseVO(401L, "高级套餐", "PACKAGE", 88);
+        
+        List<GoodsBaseVO> allGoods = Arrays.asList(selectedPortfolio, portfolio201, package301, package401);
+        
+        // Mock Portfolio跟踪数据
+        PortfolioTrackUsersDTO selectedPortfolioTrack = new PortfolioTrackUsersDTO(101L, "高端组合", "detail", 
+                Arrays.asList(1001, 1002, 1003));
+        PortfolioTrackUsersDTO candidatePortfolioTrack = new PortfolioTrackUsersDTO(201L, "财富组合", "detail", 
+                Arrays.asList(2001, 2002, 1002)); // 1002与选中产品重复，应被排除
+        
+        when(portfolioTrackApi.getPortfolioTrackList(anyList()))
+                .thenReturn(Arrays.asList(selectedPortfolioTrack, candidatePortfolioTrack));
+        
+        // Mock Package跟踪数据
+        PackageTrackUsersDTO candidatePackage301Track = new PackageTrackUsersDTO(301, "智能套餐", "detail", 
+                Arrays.asList(3001, 3002, 1001)); // 1001与选中产品重复，应被排除
+        PackageTrackUsersDTO candidatePackage401Track = new PackageTrackUsersDTO(401, "高级套餐", "detail", 
+                Arrays.asList(4001, 4002));
+        
+        when(packageTrackApi.getPackageTrackList(anyList()))
+                .thenReturn(Arrays.asList(candidatePackage301Track, candidatePackage401Track));
+        
+        // Mock订单数据
+        long startMillis = LocalDateTime.of(2024, 6, 1, 10, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long endMillis = LocalDateTime.of(2024, 9, 1, 10, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        
+        // Portfolio订单
+        List<PortfolioSpendDubboDTO> portfolioSpends = Arrays.asList(
+                new PortfolioSpendDubboDTO(201L, 2001, "财富组合产品", 
+                        LocalDateTime.of(2024, 6, 1, 10, 0), 
+                        LocalDateTime.of(2024, 9, 1, 10, 0)),
+                new PortfolioSpendDubboDTO(201L, 2002, "财富组合产品", 
+                        LocalDateTime.of(2024, 6, 1, 10, 0), 
+                        LocalDateTime.of(2024, 9, 1, 10, 0))
+        );
+        
+        // Package订单
+        List<PackageSpendDTO> packageSpends = Arrays.asList(
+                new PackageSpendDTO(301L, 3001, "智能套餐产品", startMillis, endMillis),
+                new PackageSpendDTO(301L, 3002, "智能套餐产品", startMillis, endMillis),
+                new PackageSpendDTO(401L, 4001, "高级套餐产品", startMillis, endMillis),
+                new PackageSpendDTO(401L, 4002, "高级套餐产品", startMillis, endMillis)
+        );
+        
+        when(portfolioSpendApi.getSpendByPortIdBuyer(anyList(), anyList()))
+                .thenReturn(portfolioSpends);
+        when(packageStatProvider.getSpendByPackageBuyer(anyList(), anyList()))
+                .thenReturn(packageSpends);
+        
+        // 执行测试
+        System.out.println("选中产品: " + selectedPortfolio.getProductName() + " (类型: " + selectedPortfolio.getProductType() + ")");
+        System.out.println("所有产品: Portfolio[101,201] + Package[301,401]");
+        System.out.println("选中产品用户: [1001, 1002, 1003]");
+        System.out.println("候选Portfolio201用户: [2001, 2002, 1002] - 排除1002");
+        System.out.println("候选Package301用户: [3001, 3002, 1001] - 排除1001");
+        System.out.println("候选Package401用户: [4001, 4002]");
+        System.out.println("\n开始统一处理...");
+        
+        List<GiftCandidateVO> result = candidatePolicy.listCandidates(selectedPortfolio, allGoods);
+        
+        // 打印结果
+        System.out.println("\n最终候选用户结果:");
+        for (GiftCandidateVO candidate : result) {
+            System.out.println(String.format("用户ID: %d, 产品: %s, 购买日期: %s, 持续月数: %d", 
+                    candidate.getUserId(), candidate.getProductName(), 
+                    candidate.getPurchaseDate(), candidate.getDurationMonths()));
+        }
+        
+        // 验证结果
+        System.out.println("\n验证统一处理逻辑:");
+        System.out.println("预期保留的用户: [2001, 2002, 3001, 3002, 4001, 4002] (6个用户)");
+        System.out.println("预期排除的用户: [1001, 1002, 1003] (选中产品用户)");
+        
+        assertEquals(6, result.size(), "应该有6个候选用户");
+        
+        Set<Integer> resultUserIds = result.stream()
+                .map(GiftCandidateVO::getUserId)
+                .collect(java.util.stream.Collectors.toSet());
+        
+        Set<Integer> expectedUsers = new HashSet<>(Arrays.asList(2001, 2002, 3001, 3002, 4001, 4002));
+        assertEquals(expectedUsers, resultUserIds, "应该包含来自Portfolio和Package的所有候选用户");
+        
+        System.out.println("\n测试通过！统一处理流程工作正常。");
+        System.out.println("========== 统一处理流程测试结束 ==========");
     }
 }

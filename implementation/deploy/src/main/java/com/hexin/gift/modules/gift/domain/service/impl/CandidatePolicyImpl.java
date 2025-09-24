@@ -60,9 +60,12 @@ public class CandidatePolicyImpl implements CandidatePolicy {
 
     /**
      * 根据选中商品和所有商品列表，获取可赠送的候选用户列表
-     * 重新设计的流程：
-     * 1. 严格区分portfolio和package两条路线
-     * 2. 获取跟踪用户信息 → 提取排除用户 → 筛选候选用户 → 查询订单 → 构建结果
+     * 统一处理流程：不再严格区分Portfolio和Package类型分流
+     * 1. 同时获取Portfolio和Package的跟踪用户信息
+     * 2. 根据选中产品类型提取需要排除的用户
+     * 3. 从所有产品类型中筛选候选用户
+     * 4. 分别调用相应API查询订单信息
+     * 5. 统一去重并构建结果
      * 
      * @param selectedGood 选中的商品
      * @param allGoods 所有商品列表
@@ -74,21 +77,51 @@ public class CandidatePolicyImpl implements CandidatePolicy {
             return Collections.emptyList();
         }
 
-        // 判断当前选中的产品类型
-        boolean portfolioSelected = TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getProductType());
-        boolean packageSelected = TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getProductType());
-        
-        // 如果产品类型不是PORTFOLIO也不是PACKAGE，直接返回空
-        if (!portfolioSelected && !packageSelected) {
+        // 验证选中产品类型是否有效
+        if (!isValidProductType(selectedGood.getProductType())) {
             return Collections.emptyList();
         }
         
-        // 严格按类型分流处理
-        if (portfolioSelected) {
-            return processPortfolioFlow(selectedGood, allGoods);
-        } else {
-            return processPackageFlow(selectedGood, allGoods);
+        // 统一处理流程
+        return processUnifiedFlow(selectedGood, allGoods);
+    }
+    
+    /**
+     * 验证产品类型是否有效
+     */
+    private boolean isValidProductType(String productType) {
+        return TYPE_PORTFOLIO.equalsIgnoreCase(productType) || TYPE_PACKAGE.equalsIgnoreCase(productType);
+    }
+    
+    /**
+     * 统一处理流程：不再严格区分Portfolio和Package类型
+     * 步骤1: 分别获取Portfolio和Package产品的跟踪用户信息
+     * 步骤2: 提取选中产品的用户ID作为排除列表
+     * 步骤3: 构建候选用户映射（排除选中产品的用户）
+     * 步骤4: 根据产品类型分别查询订单信息并合并
+     * 步骤5: 构建最终结果
+     */
+    private List<GiftCandidateVO> processUnifiedFlow(GoodsBaseVO selectedGood, List<GoodsBaseVO> allGoods) {
+        // 步骤1: 分别获取Portfolio和Package产品的跟踪用户信息
+        Map<Long, PortfolioTrackUsersDTO> portfolioTrackMap = getPortfolioTrackUsers(allGoods);
+        Map<Integer, PackageTrackUsersDTO> packageTrackMap = getPackageTrackUsers(allGoods);
+        
+        // 步骤2: 提取选中产品的用户ID作为排除列表
+        Set<Integer> excludeUsers = extractSelectedProductUsers(selectedGood, portfolioTrackMap, packageTrackMap);
+        
+        // 步骤3: 构建候选用户映射（排除选中产品的用户）
+        Map<Integer, UserSpendInfo> candidateMap = buildUnifiedCandidates(
+            selectedGood, allGoods, portfolioTrackMap, packageTrackMap, excludeUsers);
+        
+        if (candidateMap.isEmpty()) {
+            return Collections.emptyList();
         }
+        
+        // 步骤4: 根据产品类型分别查询订单信息并合并
+        queryAndMergeSpendInfo(candidateMap, allGoods);
+        
+        // 步骤5: 构建最终结果
+        return buildFinalResult(candidateMap);
     }
     
     /**
@@ -399,6 +432,140 @@ public class CandidatePolicyImpl implements CandidatePolicy {
      */
     private List<PackageTrackUsersDTO> safePackageList(List<PackageTrackUsersDTO> list) {
         return list != null ? list : Collections.emptyList();
+    }
+
+    /**
+     * 获取Portfolio跟踪用户信息映射
+     */
+    private Map<Long, PortfolioTrackUsersDTO> getPortfolioTrackUsers(List<GoodsBaseVO> allGoods) {
+        Set<Long> portfolioIds = extractPortfolioIds(allGoods);
+        if (portfolioIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        
+        List<PortfolioTrackUsersDTO> trackUsers = safePortfolioList(
+            portfolioTrackApi.getPortfolioTrackList(new ArrayList<>(portfolioIds))
+        );
+        
+        Map<Long, PortfolioTrackUsersDTO> trackMap = new HashMap<>();
+        for (PortfolioTrackUsersDTO dto : trackUsers) {
+            if (dto != null && dto.getPortfolioId() != null) {
+                trackMap.put(dto.getPortfolioId(), dto);
+            }
+        }
+        return trackMap;
+    }
+    
+    /**
+     * 获取Package跟踪用户信息映射
+     */
+    private Map<Integer, PackageTrackUsersDTO> getPackageTrackUsers(List<GoodsBaseVO> allGoods) {
+        Set<Long> packageIds = extractPackageIds(allGoods);
+        if (packageIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        
+        List<PackageTrackUsersDTO> trackUsers = safePackageList(
+            packageTrackApi.getPackageTrackList(new ArrayList<>(packageIds))
+        );
+        
+        Map<Integer, PackageTrackUsersDTO> trackMap = new HashMap<>();
+        for (PackageTrackUsersDTO dto : trackUsers) {
+            if (dto != null && dto.getPackageId() != null) {
+                trackMap.put(dto.getPackageId(), dto);
+            }
+        }
+        return trackMap;
+    }
+    
+    /**
+     * 提取选中产品的用户ID（统一处理）
+     */
+    private Set<Integer> extractSelectedProductUsers(GoodsBaseVO selectedGood, 
+                                                    Map<Long, PortfolioTrackUsersDTO> portfolioMap, 
+                                                    Map<Integer, PackageTrackUsersDTO> packageMap) {
+        Set<Integer> selectedUsers = new HashSet<>();
+        
+        if (TYPE_PORTFOLIO.equalsIgnoreCase(selectedGood.getProductType())) {
+            PortfolioTrackUsersDTO dto = portfolioMap.get(selectedGood.getProductId());
+            if (dto != null && dto.getUserIds() != null) {
+                selectedUsers.addAll(dto.getUserIds());
+            }
+        } else if (TYPE_PACKAGE.equalsIgnoreCase(selectedGood.getProductType())) {
+            PackageTrackUsersDTO dto = packageMap.get(selectedGood.getProductId().intValue());
+            if (dto != null && dto.getUserIds() != null) {
+                selectedUsers.addAll(dto.getUserIds());
+            }
+        }
+        
+        return selectedUsers;
+    }
+    
+    /**
+     * 构建统一候选用户映射
+     */
+    private Map<Integer, UserSpendInfo> buildUnifiedCandidates(GoodsBaseVO selectedGood, 
+                                                              List<GoodsBaseVO> allGoods,
+                                                              Map<Long, PortfolioTrackUsersDTO> portfolioMap, 
+                                                              Map<Integer, PackageTrackUsersDTO> packageMap, 
+                                                              Set<Integer> excludeUsers) {
+        Map<Integer, UserSpendInfo> candidateMap = new HashMap<>();
+        
+        // 处理Portfolio类型的候选用户
+        for (PortfolioTrackUsersDTO dto : portfolioMap.values()) {
+            if (dto.getPortfolioId().equals(selectedGood.getProductId())) {
+                continue; // 跳过选中产品
+            }
+            
+            if (dto.getUserIds() != null) {
+                for (Integer userId : dto.getUserIds()) {
+                    if (userId != null && !excludeUsers.contains(userId)) {
+                        candidateMap.putIfAbsent(userId, new UserSpendInfo(userId, dto.getName()));
+                    }
+                }
+            }
+        }
+        
+        // 处理Package类型的候选用户
+        for (PackageTrackUsersDTO dto : packageMap.values()) {
+            if (selectedGood.getProductId() != null && 
+                dto.getPackageId().equals(selectedGood.getProductId().intValue())) {
+                continue; // 跳过选中产品
+            }
+            
+            if (dto.getUserIds() != null) {
+                for (Integer userId : dto.getUserIds()) {
+                    if (userId != null && !excludeUsers.contains(userId)) {
+                        candidateMap.putIfAbsent(userId, new UserSpendInfo(userId, dto.getName()));
+                    }
+                }
+            }
+        }
+        
+        return candidateMap;
+    }
+    
+    /**
+     * 查询并合并订单信息
+     */
+    private void queryAndMergeSpendInfo(Map<Integer, UserSpendInfo> candidateMap, List<GoodsBaseVO> allGoods) {
+        List<Integer> candidateIds = new ArrayList<>(candidateMap.keySet());
+        
+        // 1. 查询Portfolio订单
+        Set<Long> portfolioIds = extractPortfolioIds(allGoods);
+        if (!portfolioIds.isEmpty()) {
+            List<PortfolioSpendDubboDTO> portfolioSpends = portfolioSpendApi.getSpendByPortIdBuyer(
+                new ArrayList<>(portfolioIds), candidateIds);
+            mergePortfolioSpendInfo(candidateMap, portfolioSpends);
+        }
+        
+        // 2. 查询Package订单
+        Set<Long> packageIds = extractPackageIds(allGoods);
+        if (!packageIds.isEmpty()) {
+            List<PackageSpendDTO> packageSpends = packageStatProvider.getSpendByPackageBuyer(
+                new ArrayList<>(packageIds), candidateIds);
+            mergePackageSpendInfo(candidateMap, packageSpends);
+        }
     }
 
     /**
