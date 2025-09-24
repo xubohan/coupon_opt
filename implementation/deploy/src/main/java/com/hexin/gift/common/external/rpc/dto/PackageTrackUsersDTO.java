@@ -7,7 +7,7 @@ import java.util.List;
  */
 public class PackageTrackUsersDTO {
 
-    private Long packageId;
+    private Integer packageId;
     private String name;
     private String detailUrl;
     private List<Integer> userIds;
@@ -15,7 +15,7 @@ public class PackageTrackUsersDTO {
     public PackageTrackUsersDTO() {
     }
 
-    public PackageTrackUsersDTO(Long packageId,
+    public PackageTrackUsersDTO(Integer packageId,
                                  String name,
                                  String detailUrl,
                                  List<Integer> userIds) {
@@ -25,11 +25,11 @@ public class PackageTrackUsersDTO {
         this.userIds = userIds;
     }
 
-    public Long getPackageId() {
+    public Integer getPackageId() {
         return packageId;
     }
 
-    public void setPackageId(Long packageId) {
+    public void setPackageId(Integer packageId) {
         this.packageId = packageId;
     }
 
